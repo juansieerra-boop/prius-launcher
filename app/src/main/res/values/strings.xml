@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Prius Launcher</string>
+
+    <!-- Cambia tu nombre aquí -->
+    <string name="driver_name">Juan Diego</string>
+    <string name="good_morning">Buenos días</string>
+    <string name="good_afternoon">Buenas tardes</string>
+    <string name="good_evening">Buenas noches</string>
+    <string name="greeting_fmt">%1$s, %2$s</string>
+
+    <string name="now_playing">Reproduciendo</string>
+    <string name="nothing_playing">Nada reproduciéndose</string>
+    <string name="grant_access_title">Mostrar la canción actual</string>
+    <string name="grant_access_sub">Toca aquí y activa el acceso a notificaciones</string>
+    <string name="no_access_screen">Esta pantalla no tiene ese ajuste. Los botones igual controlan la música.</string>
+
+    <string name="slot_maps">Mapas</string>
+    <string name="slot_music">Música</string>
+    <string name="slot_phone">Teléfono</string>
+    <string name="slot_radio">Radio</string>
+    <string name="slot_settings">Ajustes</string>
+    <string name="slot_apps">Apps</string>
+
+    <string name="apps_title">Aplicaciones</string>
+    <string name="pick_for">Elige la app para «%1$s»</string>
+    <string name="assigned">%1$s ahora está en «%2$s»</string>
+    <string name="reset">Restablecer</string>
+    <string name="reset_done">«%1$s» volvió a su app original</string>
+    <string name="hint_long_press">Consejo: mantén presionado un ícono de abajo para elegir qué app abre</string>
+    <string name="cant_open">No se pudo abrir la app</string>
+
+    <string name="close">Cerrar</string>
+    <string name="prev">Anterior</string>
+    <string name="play_pause">Reproducir o pausar</string>
+    <string name="next">Siguiente</string>
+</resources>

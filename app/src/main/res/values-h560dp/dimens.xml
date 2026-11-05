@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tamaños para pantallas con más altura (p. ej. 1024x600 o 1280x720 en densidad normal) -->
+<resources>
+    <dimen name="panel_pad">30dp</dimen>
+    <dimen name="clock_size">92sp</dimen>
+    <dimen name="date_size">22sp</dimen>
+    <dimen name="greet_size">17sp</dimen>
+    <dimen name="card_gap">20dp</dimen>
+    <dimen name="card_pad">18dp</dimen>
+    <dimen name="track_size">20sp</dimen>
+    <dimen name="artist_size">15sp</dimen>
+    <dimen name="art_size">68dp</dimen>
+    <dimen name="ctrl_size">52dp</dimen>
+    <dimen name="dock_pad_top">22dp</dimen>
+    <dimen name="dock_pad_bottom">16dp</dimen>
+    <dimen name="dock_box">66dp</dimen>
+    <dimen name="dock_icon">34dp</dimen>
+    <dimen name="dock_label">14sp</dimen>
+    <dimen name="dock_gap">22dp</dimen>
+</resources>

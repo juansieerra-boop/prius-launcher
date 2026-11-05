@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark">
+
+    <!-- Fondo: tu Prius -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:src="@drawable/prius_bg" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <!-- Espacio libre para que se vea el carro -->
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.6" />
+
+            <!-- Panel derecho -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.4"
+                android:orientation="vertical"
+                android:padding="@dimen/panel_pad">
+
+                <TextClock
+                    android:id="@+id/clock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-thin"
+                    android:format12Hour="h:mm"
+                    android:format24Hour="H:mm"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/text_main"
+                    android:textSize="@dimen/clock_size" />
+
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-light"
+                    android:textColor="@color/text_soft"
+                    android:textSize="@dimen/date_size" />
+
+                <TextView
+                    android:id="@+id/greeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/greet_size" />
+
+                <!-- Tarjeta de música -->
+                <LinearLayout
+                    android:id="@+id/mediaCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:background="@drawable/card_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="vertical"
+                    android:padding="@dimen/card_pad">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.12"
+                        android:text="@string/now_playing"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_muted"
+                        android:textSize="11sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/albumArt"
+                            android:layout_width="@dimen/art_size"
+                            android:layout_height="@dimen/art_size"
+                            android:layout_marginEnd="12dp"
+                            android:importantForAccessibility="no"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/trackTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:singleLine="true"
+                                android:textColor="@color/text_main"
+                                android:textSize="@dimen/track_size" />
+
+                            <TextView
+                                android:id="@+id/trackArtist"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:singleLine="true"
+                                android:textColor="@color/text_muted"
+                                android:textSize="@dimen/artist_size" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/btnPrev"
+                            android:layout_width="@dimen/ctrl_size"
+                            android:layout_height="@dimen/ctrl_size"
+                            android:background="@drawable/round_button_bg"
+                            android:contentDescription="@string/prev"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_prev"
+                            android:tint="@color/text_main" />
+
+                        <ImageButton
+                            android:id="@+id/btnPlay"
+                            android:layout_width="@dimen/ctrl_size"
+                            android:layout_height="@dimen/ctrl_size"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginEnd="24dp"
+                            android:background="@drawable/round_button_bg"
+                            android:contentDescription="@string/play_pause"
+                            android:padding="6dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_play"
+                            android:tint="@color/text_main" />
+
+                        <ImageButton
+                            android:id="@+id/btnNext"
+                            android:layout_width="@dimen/ctrl_size"
+                            android:layout_height="@dimen/ctrl_size"
+                            android:background="@drawable/round_button_bg"
+                            android:contentDescription="@string/next"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_next"
+                            android:tint="@color/text_main" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Barra de apps -->
+        <LinearLayout
+            android:id="@+id/dock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/dock_bg"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/dock_pad_top"
+            android:paddingBottom="@dimen/dock_pad_bottom" />
+    </LinearLayout>
+</FrameLayout>
