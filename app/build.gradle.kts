@@ -38,7 +38,7 @@ android {
     lint {
         abortOnError = false
         textReport = true
-        textOutput = file("stdout")
+        textOutput = file("build/lint.txt")
         checkOnly += setOf("NewApi", "InlinedApi", "WrongConstant", "ResourceType", "MissingDefaultResource")
     }
 
