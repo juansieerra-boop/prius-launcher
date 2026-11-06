@@ -15,11 +15,23 @@ android {
         versionName = "1.0"
     }
 
+    // Llave fija: así cada versión nueva se instala encima de la anterior
+    signingConfigs {
+        create("fija") {
+            storeFile = file("prius-launcher.keystore")
+            storePassword = "priuslauncher"
+            keyAlias = "prius"
+            keyPassword = "priuslauncher"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("fija")
+        }
         release {
             isMinifyEnabled = false
-            // Firmado con la llave de depuración para que se pueda instalar directo
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("fija")
         }
     }
 
