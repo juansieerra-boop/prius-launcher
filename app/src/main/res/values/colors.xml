@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_dark">#FF0B0D11</color>
-    <color name="text_main">#FFF2F5F8</color>
-    <color name="text_soft">#FFC9D1DB</color>
-    <color name="text_muted">#FF8B95A3</color>
-    <color name="accent">#FF4FC3F7</color>
-    <color name="glass">#1AFFFFFF</color>
-    <color name="glass_pressed">#38FFFFFF</color>
-    <color name="glass_stroke">#24FFFFFF</color>
+    <color name="bg_dark">#FF0B0C0E</color>
+    <color name="card_top">#FF202328</color>
+    <color name="card_bottom">#FF121418</color>
+    <color name="tile_top">#FF22252A</color>
+    <color name="tile_bottom">#FF16181C</color>
+    <color name="tile_pressed">#FF2E3238</color>
+    <color name="dark_tile">#FF111316</color>
+    <color name="stroke">#14FFFFFF</color>
+    <color name="track">#FF2A2D33</color>
+
+    <color name="text_main">#FFF1F3F5</color>
+    <color name="text_soft">#FFC9CED4</color>
+    <color name="text_muted">#FF8A929C</color>
+    <color name="text_dim">#FF7B838D</color>
+
+    <color name="accent_default">#FFE5243B</color>
+    <color name="gps_ok">#FF3DDC84</color>
+    <color name="gps_wait">#FFFFC400</color>
 </resources>

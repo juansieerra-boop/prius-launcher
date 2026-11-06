@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pantallas de 1024x600 en densidad normal -->
+<resources>
+    <dimen name="screen_pad">14dp</dimen>
+    <dimen name="gap">10dp</dimen>
+    <dimen name="clock_size">64sp</dimen>
+    <dimen name="date_size">12sp</dimen>
+    <dimen name="photo_top">92dp</dimen>
+    <dimen name="bottom_row_h">104dp</dimen>
+    <dimen name="speed_w">140dp</dimen>
+    <dimen name="speed_size">44sp</dimen>
+    <dimen name="bar_h">60dp</dimen>
+    <dimen name="all_h">42dp</dimen>
+    <dimen name="tile_icon">28dp</dimen>
+    <dimen name="tile_label">12sp</dimen>
+    <dimen name="media_pad">16dp</dimen>
+    <dimen name="art_size">60dp</dimen>
+    <dimen name="ctrl_size">44dp</dimen>
+    <dimen name="play_size">52dp</dimen>
+    <dimen name="title_size">16sp</dimen>
+</resources>

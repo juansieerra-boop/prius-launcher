@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Tamaños para pantallas de poca altura (p. ej. 1024x600 o 1280x720 de alta densidad) -->
+<!-- Pantallas bajas (menos de 520dp de alto) -->
 <resources>
-    <dimen name="panel_pad">16dp</dimen>
-    <dimen name="clock_size">56sp</dimen>
-    <dimen name="date_size">16sp</dimen>
-    <dimen name="greet_size">13sp</dimen>
-    <dimen name="card_gap">12dp</dimen>
-    <dimen name="card_pad">12dp</dimen>
-    <dimen name="track_size">16sp</dimen>
-    <dimen name="artist_size">13sp</dimen>
-    <dimen name="art_size">44dp</dimen>
-    <dimen name="ctrl_size">40dp</dimen>
-    <dimen name="dock_pad_top">14dp</dimen>
-    <dimen name="dock_pad_bottom">10dp</dimen>
-    <dimen name="dock_box">48dp</dimen>
-    <dimen name="dock_icon">26dp</dimen>
-    <dimen name="dock_label">11sp</dimen>
-    <dimen name="dock_gap">14dp</dimen>
+    <dimen name="screen_pad">10dp</dimen>
+    <dimen name="gap">8dp</dimen>
+    <dimen name="clock_size">44sp</dimen>
+    <dimen name="date_size">10sp</dimen>
+    <dimen name="photo_top">60dp</dimen>
+    <dimen name="bottom_row_h">74dp</dimen>
+    <dimen name="speed_w">112dp</dimen>
+    <dimen name="speed_size">30sp</dimen>
+    <dimen name="bar_h">44dp</dimen>
+    <dimen name="all_h">32dp</dimen>
+    <dimen name="tile_icon">22dp</dimen>
+    <dimen name="tile_label">10sp</dimen>
+    <dimen name="media_pad">10dp</dimen>
+    <dimen name="art_size">40dp</dimen>
+    <dimen name="ctrl_size">34dp</dimen>
+    <dimen name="play_size">40dp</dimen>
+    <dimen name="title_size">13sp</dimen>
 </resources>

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="32dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="32dp"
+        android:paddingBottom="28dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/titleAccent"
+                android:layout_width="6dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="14dp"
+                android:background="@drawable/accent_box" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/settings_title"
+                android:textColor="@color/text_main"
+                android:textSize="28sp"
+                android:textStyle="italic" />
+
+            <ImageButton
+                android:id="@+id/btnClose"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/round_button_bg"
+                android:contentDescription="@string/close"
+                android:padding="13dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_close"
+                android:tint="@color/text_main" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <!-- Columna: color -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.3"
+                android:background="@drawable/tile_bg"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    style="@style/SectionLabel"
+                    android:text="@string/accent_section" />
+
+                <LinearLayout
+                    android:id="@+id/swatchRow1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal" />
+
+                <LinearLayout
+                    android:id="@+id/swatchRow2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:text="@string/custom_color"
+                    android:textColor="@color/text_soft"
+                    android:textSize="13sp" />
+
+                <com.juandiego.priuslauncher.HueBar
+                    android:id="@+id/hueBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Columna: velocidad y foto -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/tile_bg"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        style="@style/SectionLabel"
+                        android:text="@string/speed_section" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/unitMph"
+                            style="@style/ChoiceButton"
+                            android:text="@string/mph" />
+
+                        <TextView
+                            android:id="@+id/unitKmh"
+                            style="@style/ChoiceButton"
+                            android:layout_marginStart="10dp"
+                            android:text="@string/kmh" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/tile_bg"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        style="@style/SectionLabel"
+                        android:text="@string/photo_section" />
+
+                    <TextView
+                        android:id="@+id/btnPickPhoto"
+                        style="@style/ChoiceButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/pick_photo" />
+
+                    <TextView
+                        android:id="@+id/btnResetPhoto"
+                        style="@style/ChoiceButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/reset_photo" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/photo_hint"
+                        android:textColor="@color/text_dim"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

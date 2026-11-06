@@ -1,5 +1,6 @@
 package com.juandiego.priuslauncher
 
+import android.Manifest
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
@@ -9,6 +10,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.Outline
+import android.graphics.drawable.GradientDrawable
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.media.AudioManager
 import android.media.MediaMetadata
 import android.media.session.MediaController
@@ -17,39 +24,108 @@ import android.media.session.PlaybackState
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewOutlineProvider
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 class MainActivity : Activity() {
 
-    private lateinit var prefs: SharedPreferences
+    private companion object {
+        const val REQ_LOC = 11
+        const val MAX_MPH = 100f
+        const val MAX_KMH = 160f
+        const val GPS_STALE_MS = 5000L
+    }
+
+    private enum class GpsState { OK, SEARCHING, OFF, NO_PERMISSION }
+
+    private lateinit var dockPrefs: SharedPreferences
+    private lateinit var carPhoto: CarPhotoView
+    private lateinit var stripes: StripesView
     private lateinit var dateView: TextView
-    private lateinit var greetingView: TextView
+    private lateinit var gpsDot: View
+    private lateinit var gpsText: TextView
+    private lateinit var speedValue: TextView
+    private lateinit var speedUnit: TextView
+    private lateinit var speedBar: SegmentBar
+    private lateinit var mapView: MapTileView
+    private lateinit var phoneIconBox: View
+    private lateinit var tileRow1: LinearLayout
+    private lateinit var tileRow2: LinearLayout
+    private lateinit var artBox: View
+    private lateinit var albumArt: ImageView
+    private lateinit var artIcon: ImageView
+    private lateinit var nowCap: TextView
     private lateinit var trackTitle: TextView
     private lateinit var trackArtist: TextView
-    private lateinit var albumArt: ImageView
+    private lateinit var progress: ProgressLine
+    private lateinit var posText: TextView
+    private lateinit var durText: TextView
     private lateinit var btnPlay: ImageButton
-    private lateinit var dock: LinearLayout
 
+    private var accent = 0
+    private var loadedPhoto: String? = "none"
     private val handler = Handler(Looper.getMainLooper())
-    private val spanish = Locale("es", "MX")
 
     private var sessionManager: MediaSessionManager? = null
     private var controller: MediaController? = null
 
+    private var locationManager: LocationManager? = null
+    private var gpsListening = false
+    private var lastFix = 0L
+    private var lastMps = 0f
+    private var gpsState = GpsState.SEARCHING
+
+    // ---------- Receptores y listeners ----------
+
     private val timeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             updateDate()
+        }
+    }
+
+    private val ticker = object : Runnable {
+        override fun run() {
+            updateProgress()
+            checkGpsStale()
+            handler.postDelayed(this, 1000)
+        }
+    }
+
+    private val locationListener = object : LocationListener {
+        override fun onLocationChanged(location: Location) {
+            lastFix = SystemClock.elapsedRealtime()
+            showSpeed(if (location.hasSpeed()) location.speed else 0f)
+            setGpsState(GpsState.OK)
+        }
+
+        override fun onProviderEnabled(provider: String) {
+            setGpsState(GpsState.SEARCHING)
+        }
+
+        override fun onProviderDisabled(provider: String) {
+            showSpeed(0f)
+            setGpsState(GpsState.OFF)
+        }
+
+        @Deprecated("Deprecated in Java")
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
         }
     }
 
@@ -77,23 +153,36 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         hideSystemUi()
+        dockPrefs = getSharedPreferences(DockSlots.PREFS, MODE_PRIVATE)
+        bindViews()
 
-        prefs = getSharedPreferences(DockSlots.PREFS, MODE_PRIVATE)
-        dateView = findViewById(R.id.date)
-        greetingView = findViewById(R.id.greeting)
-        trackTitle = findViewById(R.id.trackTitle)
-        trackArtist = findViewById(R.id.trackArtist)
-        albumArt = findViewById(R.id.albumArt)
-        btnPlay = findViewById(R.id.btnPlay)
-        dock = findViewById(R.id.dock)
-
-        setupMediaButtons()
-        buildDock()
-
-        if (!prefs.getBoolean("hint_shown", false)) {
-            Toast.makeText(this, R.string.hint_long_press, Toast.LENGTH_LONG).show()
-            prefs.edit().putBoolean("hint_shown", true).apply()
+        findViewById<View>(R.id.root).background = GradientDrawable().apply {
+            gradientType = GradientDrawable.RADIAL_GRADIENT
+            colors = intArrayOf(0xFF23262B.toInt(), 0xFF0B0C0E.toInt())
+            gradientRadius = resources.displayMetrics.widthPixels * 0.75f
+            setGradientCenter(0.3f, 0.2f)
         }
+        roundClip(findViewById(R.id.leftCard), 18f)
+        roundClip(findViewById(R.id.mapTile), 14f)
+        roundClip(artBox, 12f)
+
+        setupClicks()
+        setupMediaButtons()
+
+        if (!dockPrefs.getBoolean("hint_shown", false)) {
+            Toast.makeText(this, R.string.hint_long_press, Toast.LENGTH_LONG).show()
+            dockPrefs.edit().putBoolean("hint_shown", true).apply()
+        }
+
+        if (!hasLocationPermission()) {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                REQ_LOC
+            )
+        }
+
+        reloadCarPhotoIfNeeded()
+        animateCarIn()
     }
 
     override fun onStart() {
@@ -104,13 +193,20 @@ class MainActivity : Activity() {
             addAction(Intent.ACTION_TIMEZONE_CHANGED)
         }
         registerReceiver(timeReceiver, filter)
-        updateDate()
+        startGps()
         startMediaWatch()
+        handler.removeCallbacks(ticker)
+        handler.post(ticker)
     }
 
     override fun onResume() {
         super.onResume()
         hideSystemUi()
+        applyAccent()
+        buildTiles()
+        speedUnit.setText(if (Prefs.useKmh(this)) R.string.unit_kmh else R.string.unit_mph)
+        showSpeed(lastMps)
+        reloadCarPhotoIfNeeded()
         updateNowPlaying()
     }
 
@@ -121,6 +217,7 @@ class MainActivity : Activity() {
         } catch (e: IllegalArgumentException) {
             // ya estaba desregistrado
         }
+        stopGps()
         stopMediaWatch()
         handler.removeCallbacksAndMessages(null)
     }
@@ -132,68 +229,258 @@ class MainActivity : Activity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        // Es la pantalla de inicio: el botón "atrás" no hace nada aquí.
+        // Es la pantalla de inicio: "atrás" no hace nada aquí.
     }
 
-    // ---------- Fecha y saludo ----------
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_LOC) startGps()
+    }
 
-    private fun updateDate() {
-        val text = SimpleDateFormat("EEEE d 'de' MMMM", spanish).format(Date())
-        dateView.text = text.replaceFirstChar { it.titlecase(spanish) }
-
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        val part = when {
-            hour < 12 -> R.string.good_morning
-            hour < 19 -> R.string.good_afternoon
-            else -> R.string.good_evening
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == CarPhoto.REQ_PICK && resultCode == RESULT_OK && CarPhoto.handleResult(this, data)) {
+            reloadCarPhotoIfNeeded()
+            animateCarIn()
+            Toast.makeText(this, R.string.photo_changed, Toast.LENGTH_SHORT).show()
         }
-        greetingView.text = getString(R.string.greeting_fmt, getString(part), getString(R.string.driver_name))
     }
 
-    // ---------- Barra de apps ----------
+    // ---------- Vistas ----------
 
-    private fun buildDock() {
-        dock.removeAllViews()
-        DockSlots.ALL.forEachIndexed { i, slot ->
-            addDockItem(getString(slot.labelRes), slot.iconRes, { openSlot(i) }, { pickForSlot(i) })
-        }
-        addDockItem(getString(R.string.slot_apps), R.drawable.ic_apps, {
-            startActivity(Intent(this, AppsActivity::class.java))
-        }, null)
+    private fun bindViews() {
+        carPhoto = findViewById(R.id.carPhoto)
+        stripes = findViewById(R.id.stripes)
+        dateView = findViewById(R.id.date)
+        gpsDot = findViewById(R.id.gpsDot)
+        gpsText = findViewById(R.id.gpsText)
+        speedValue = findViewById(R.id.speedValue)
+        speedUnit = findViewById(R.id.speedUnit)
+        speedBar = findViewById(R.id.speedBar)
+        mapView = findViewById(R.id.mapView)
+        phoneIconBox = findViewById(R.id.phoneIconBox)
+        tileRow1 = findViewById(R.id.tileRow1)
+        tileRow2 = findViewById(R.id.tileRow2)
+        artBox = findViewById(R.id.artBox)
+        albumArt = findViewById(R.id.albumArt)
+        artIcon = findViewById(R.id.artIcon)
+        nowCap = findViewById(R.id.nowCap)
+        trackTitle = findViewById(R.id.trackTitle)
+        trackArtist = findViewById(R.id.trackArtist)
+        progress = findViewById(R.id.progress)
+        posText = findViewById(R.id.posText)
+        durText = findViewById(R.id.durText)
+        btnPlay = findViewById(R.id.btnPlay)
     }
 
-    private fun addDockItem(label: String, icon: Int, onClick: () -> Unit, onLongClick: (() -> Unit)?) {
-        val item = layoutInflater.inflate(R.layout.dock_item, dock, false)
-        item.findViewById<ImageView>(R.id.icon).setImageResource(icon)
-        item.findViewById<TextView>(R.id.label).text = label
-        item.contentDescription = label
-        item.setOnClickListener { onClick() }
-        if (onLongClick != null) {
-            item.setOnLongClickListener {
-                onLongClick()
-                true
+    private fun dp(v: Float) = v * resources.displayMetrics.density
+
+    private fun roundClip(v: View, radiusDp: Float) {
+        val r = dp(radiusDp)
+        v.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, r)
             }
         }
-        dock.addView(item)
+        v.clipToOutline = true
+    }
+
+    private fun setupClicks() {
+        findViewById<View>(R.id.btnSettings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        carPhoto.setOnLongClickListener {
+            pickPhoto()
+            true
+        }
+        findViewById<View>(R.id.allApps).setOnClickListener {
+            startActivity(Intent(this, AppsActivity::class.java))
+        }
+        findViewById<View>(R.id.phoneBar).setOnClickListener {
+            if (!tryStart(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))) tryStart(Intent(Settings.ACTION_SETTINGS))
+        }
+        val map = findViewById<View>(R.id.mapTile)
+        map.setOnClickListener { openSlot(DockSlots.MAPS) }
+        map.setOnLongClickListener {
+            pickForSlot(DockSlots.MAPS)
+            true
+        }
+        findViewById<View>(R.id.gpsPill).setOnClickListener {
+            when (gpsState) {
+                GpsState.NO_PERMISSION -> requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                    REQ_LOC
+                )
+                GpsState.OFF -> tryStart(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                else -> Unit
+            }
+        }
+    }
+
+    private fun pickPhoto() {
+        try {
+            @Suppress("DEPRECATION")
+            startActivityForResult(CarPhoto.pickIntent(), CarPhoto.REQ_PICK)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.cant_open, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun reloadCarPhotoIfNeeded() {
+        val current = Prefs.carUri(this)?.toString()
+        if (current == loadedPhoto) return
+        loadedPhoto = current
+        carPhoto.setImageBitmap(CarPhoto.load(this, 1400))
+    }
+
+    /** Entrada suave: aparece y se desliza desde la izquierda (600 ms). */
+    private fun animateCarIn() {
+        carPhoto.alpha = 0f
+        carPhoto.translationX = -dp(60f)
+        carPhoto.animate()
+            .alpha(1f)
+            .translationX(0f)
+            .setDuration(600)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+    }
+
+    private fun applyAccent() {
+        accent = Prefs.accent(this)
+        val tint = ColorStateList.valueOf(accent)
+        phoneIconBox.backgroundTintList = tint
+        btnPlay.backgroundTintList = tint
+        artBox.background = GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            intArrayOf(accent, 0xFF2A2D33.toInt())
+        ).apply { cornerRadius = dp(12f) }
+        nowCap.setTextColor(accent)
+        speedUnit.setTextColor(accent)
+        progress.color = accent
+        speedBar.color = accent
+        mapView.accent = accent
+        stripes.accent = accent
+        updateDate()
+    }
+
+    private fun updateDate() {
+        val es = Locale("es", "MX")
+        val now = Date()
+        val day = SimpleDateFormat("EEEE", es).format(now).uppercase(es)
+        val rest = SimpleDateFormat("d MMM", es).format(now).replace(".", "").uppercase(es)
+        val text = "$day  ·  $rest"
+        val span = SpannableString(text)
+        val dot = text.indexOf('·')
+        if (dot >= 0) span.setSpan(ForegroundColorSpan(accent), dot, dot + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        dateView.text = span
+    }
+
+    // ---------- Botones de apps ----------
+
+    private fun buildTiles() {
+        tileRow1.removeAllViews()
+        tileRow2.removeAllViews()
+        val gap = resources.getDimensionPixelSize(R.dimen.gap)
+        DockSlots.ALL.forEachIndexed { i, slot ->
+            val row = if (i < 3) tileRow1 else tileRow2
+            val v = layoutInflater.inflate(R.layout.tile_item, row, false)
+            val lp = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+            if (i % 3 != 0) lp.marginStart = gap
+            v.layoutParams = lp
+            v.findViewById<ImageView>(R.id.tileIcon).setImageResource(slot.iconRes)
+            val label = DockSlots.labelFor(this, dockPrefs, i)
+            v.findViewById<TextView>(R.id.tileLabel).text = label
+            v.contentDescription = label
+            v.setOnClickListener { openSlot(i) }
+            v.setOnLongClickListener {
+                pickForSlot(i)
+                true
+            }
+            row.addView(v)
+        }
     }
 
     private fun openSlot(index: Int) {
-        val intent = DockSlots.resolve(this, prefs, index)
-        if (intent == null) {
-            pickForSlot(index)
-            return
-        }
-        try {
-            startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            pickForSlot(index)
-        } catch (e: SecurityException) {
-            pickForSlot(index)
-        }
+        val intent = DockSlots.resolve(this, dockPrefs, index)
+        if (intent == null || !tryStart(intent)) pickForSlot(index)
     }
 
     private fun pickForSlot(index: Int) {
         startActivity(Intent(this, AppsActivity::class.java).putExtra(AppsActivity.EXTRA_PICK_SLOT, index))
+    }
+
+    private fun tryStart(intent: Intent): Boolean =
+        try {
+            startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        } catch (e: SecurityException) {
+            false
+        }
+
+    // ---------- GPS ----------
+
+    private fun hasLocationPermission() =
+        checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+    private fun startGps() {
+        if (gpsListening) return
+        if (!hasLocationPermission()) {
+            setGpsState(GpsState.NO_PERMISSION)
+            return
+        }
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager = lm
+        try {
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, locationListener, Looper.getMainLooper())
+            gpsListening = true
+            setGpsState(if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) GpsState.SEARCHING else GpsState.OFF)
+        } catch (e: SecurityException) {
+            setGpsState(GpsState.NO_PERMISSION)
+        } catch (e: IllegalArgumentException) {
+            setGpsState(GpsState.OFF)
+        }
+    }
+
+    private fun stopGps() {
+        if (!gpsListening) return
+        try {
+            locationManager?.removeUpdates(locationListener)
+        } catch (e: SecurityException) {
+            // nada
+        }
+        gpsListening = false
+    }
+
+    private fun checkGpsStale() {
+        if (gpsListening && lastFix > 0 && SystemClock.elapsedRealtime() - lastFix > GPS_STALE_MS) {
+            lastFix = 0
+            showSpeed(0f)
+            setGpsState(GpsState.SEARCHING)
+        }
+    }
+
+    private fun showSpeed(mps: Float) {
+        lastMps = mps
+        val kmh = Prefs.useKmh(this)
+        val v = if (kmh) mps * 3.6f else mps * 2.23694f
+        speedValue.text = (if (v < 1f) 0 else v.roundToInt()).toString()
+        speedBar.level = v / (if (kmh) MAX_KMH else MAX_MPH)
+    }
+
+    private fun setGpsState(state: GpsState) {
+        gpsState = state
+        val (color, text) = when (state) {
+            GpsState.OK -> getColor(R.color.gps_ok) to R.string.gps_ok
+            GpsState.SEARCHING -> getColor(R.color.gps_wait) to R.string.gps_searching
+            GpsState.OFF -> getColor(R.color.text_dim) to R.string.gps_off
+            GpsState.NO_PERMISSION -> getColor(R.color.text_dim) to R.string.gps_no_permission
+        }
+        gpsDot.backgroundTintList = ColorStateList.valueOf(color)
+        gpsText.setText(text)
     }
 
     // ---------- Música ----------
@@ -206,11 +493,8 @@ class MainActivity : Activity() {
         btnPlay.setOnClickListener {
             val c = controller
             if (c != null) {
-                if (c.playbackState?.state == PlaybackState.STATE_PLAYING) {
-                    c.transportControls.pause()
-                } else {
-                    c.transportControls.play()
-                }
+                if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause()
+                else c.transportControls.play()
             } else {
                 sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
             }
@@ -219,23 +503,15 @@ class MainActivity : Activity() {
             val c = controller
             if (c != null) c.transportControls.skipToNext() else sendMediaKey(KeyEvent.KEYCODE_MEDIA_NEXT)
         }
-
         findViewById<View>(R.id.mediaCard).setOnClickListener {
             if (!hasNotificationAccess()) {
-                openNotificationAccess()
+                if (!tryStart(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))) {
+                    Toast.makeText(this, R.string.no_access_screen, Toast.LENGTH_LONG).show()
+                }
                 return@setOnClickListener
             }
-            val pkg = controller?.packageName
-            val launch = pkg?.let { packageManager.getLaunchIntentForPackage(it) }
-            if (launch != null) {
-                try {
-                    startActivity(launch)
-                } catch (e: ActivityNotFoundException) {
-                    openSlot(1)
-                }
-            } else {
-                openSlot(1) // botón "Música"
-            }
+            val launch = controller?.packageName?.let { packageManager.getLaunchIntentForPackage(it) }
+            if (launch == null || !tryStart(launch)) openSlot(5)
         }
     }
 
@@ -255,14 +531,6 @@ class MainActivity : Activity() {
     private fun hasNotificationAccess(): Boolean {
         val enabled = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
         return enabled?.contains("$packageName/") == true
-    }
-
-    private fun openNotificationAccess() {
-        try {
-            startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.no_access_screen, Toast.LENGTH_LONG).show()
-        }
     }
 
     private fun startMediaWatch() {
@@ -318,10 +586,11 @@ class MainActivity : Activity() {
         val c = controller
         if (c == null) {
             val access = hasNotificationAccess()
-            trackTitle.text = getString(if (access) R.string.nothing_playing else R.string.grant_access_title)
+            trackTitle.setText(if (access) R.string.nothing_playing else R.string.grant_access_title)
             trackArtist.text = if (access) "" else getString(R.string.grant_access_sub)
-            albumArt.visibility = View.GONE
+            showArt(null)
             setPlayIcon((getSystemService(Context.AUDIO_SERVICE) as AudioManager).isMusicActive)
+            updateProgress()
             return
         }
         val md = c.metadata
@@ -329,15 +598,46 @@ class MainActivity : Activity() {
         trackArtist.text = md?.getString(MediaMetadata.METADATA_KEY_ARTIST)
             ?: md?.getString(MediaMetadata.METADATA_KEY_ALBUM)
             ?: ""
-        val art = md?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
-            ?: md?.getBitmap(MediaMetadata.METADATA_KEY_ART)
-        if (art != null) {
-            albumArt.setImageBitmap(art)
+        showArt(md?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: md?.getBitmap(MediaMetadata.METADATA_KEY_ART))
+        setPlayIcon(c.playbackState?.state == PlaybackState.STATE_PLAYING)
+        updateProgress()
+    }
+
+    private fun showArt(bitmap: android.graphics.Bitmap?) {
+        if (bitmap != null) {
+            albumArt.setImageBitmap(bitmap)
             albumArt.visibility = View.VISIBLE
+            artIcon.visibility = View.GONE
         } else {
             albumArt.visibility = View.GONE
+            artIcon.visibility = View.VISIBLE
         }
-        setPlayIcon(c.playbackState?.state == PlaybackState.STATE_PLAYING)
+    }
+
+    private fun updateProgress() {
+        if (!::progress.isInitialized) return
+        val c = controller
+        val duration = c?.metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+        if (c == null || duration <= 0L) {
+            progress.level = 0f
+            posText.text = ""
+            durText.text = ""
+            return
+        }
+        val st = c.playbackState
+        var pos = st?.position ?: 0L
+        if (st != null && st.state == PlaybackState.STATE_PLAYING && st.lastPositionUpdateTime > 0) {
+            pos += ((SystemClock.elapsedRealtime() - st.lastPositionUpdateTime) * st.playbackSpeed).toLong()
+        }
+        pos = pos.coerceIn(0L, duration)
+        progress.level = pos.toFloat() / duration
+        posText.text = formatTime(pos)
+        durText.text = formatTime(duration)
+    }
+
+    private fun formatTime(ms: Long): String {
+        val s = ms / 1000
+        return String.format(Locale.US, "%d:%02d", s / 60, s % 60)
     }
 
     private fun appLabel(pkg: String): String =

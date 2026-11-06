@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.juandiego.priuslauncher"
-        minSdk = 21          // funciona en pantallas Android 5.0 en adelante
+        minSdk = 24          // Android 7.0 en adelante
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"

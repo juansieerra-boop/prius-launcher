@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop"
-        android:src="@drawable/prius_bg" />
+        android:src="@drawable/mi_carro" />
 
     <View
         android:layout_width="match_parent"
