@@ -15,18 +15,27 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Compilar
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug lintDebug --no-daemon
+          ./gradlew assemblePriusDebug assembleJeepDebug lintPriusDebug --no-daemon
 
       - name: Resultado de lint
         run: cat app/build/lint.txt || true
 
+      - name: Revisar el Jeep también
+        run: |
+          ./gradlew lintJeepDebug --no-daemon
+          cat app/build/lint.txt || true
+
       - uses: actions/upload-artifact@v4
         with:
           name: PriusLauncher-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/prius/debug/*.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JeepLauncher-apk
+          path: app/build/outputs/apk/jeep/debug/*.apk

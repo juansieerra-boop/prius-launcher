@@ -15,6 +15,19 @@ android {
         versionName = "1.0"
     }
 
+    // Dos versiones del mismo launcher, una para cada carro
+    flavorDimensions += "carro"
+    productFlavors {
+        create("prius") {
+            dimension = "carro"
+            applicationId = "com.juandiego.priuslauncher"
+        }
+        create("jeep") {
+            dimension = "carro"
+            applicationId = "com.juandiego.jeeplauncher"
+        }
+    }
+
     // Llave fija: así cada versión nueva se instala encima de la anterior
     signingConfigs {
         create("fija") {

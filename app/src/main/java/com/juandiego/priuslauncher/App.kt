@@ -65,7 +65,7 @@ object CrashReport {
             setPadding((24 * d).toInt(), (20 * d).toInt(), (24 * d).toInt(), (16 * d).toInt())
         }
         root.addView(TextView(act).apply {
-            text = "Prius Launcher tuvo un error.\nTómale una foto a esta pantalla y mándasela a Claude."
+            text = act.getString(R.string.app_name) + " tuvo un error.\nTómale una foto a esta pantalla y mándasela a Claude."
             setTextColor(Color.WHITE)
             textSize = 18f
             setTypeface(typeface, Typeface.BOLD)

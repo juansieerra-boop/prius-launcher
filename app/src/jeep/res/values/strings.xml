@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Versión para el Jeep: solo cambia el nombre y los textos del carro -->
+<resources>
+    <string name="app_name">Jeep Launcher</string>
+    <string name="brand_title">JEEP WRANGLER</string>
+    <string name="brand_sub">SAHARA · LIMITED EDITION</string>
+</resources>
