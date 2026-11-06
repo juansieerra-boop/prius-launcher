@@ -14,8 +14,8 @@
     <dimen name="tile_icon">28dp</dimen>
     <dimen name="tile_label">12sp</dimen>
     <dimen name="media_pad">16dp</dimen>
-    <dimen name="art_size">60dp</dimen>
+    <dimen name="art_size">84dp</dimen>
     <dimen name="ctrl_size">44dp</dimen>
     <dimen name="play_size">52dp</dimen>
-    <dimen name="title_size">16sp</dimen>
+    <dimen name="title_size">17sp</dimen>
 </resources>

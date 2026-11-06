@@ -55,6 +55,7 @@ class MainActivity : Activity() {
         const val MAX_MPH = 100f
         const val MAX_KMH = 160f
         const val GPS_STALE_MS = 5000L
+        const val SPOTIFY = "com.spotify.music"
     }
 
     private enum class GpsState { OK, SEARCHING, OFF, NO_PERMISSION }
@@ -632,7 +633,7 @@ class MainActivity : Activity() {
     private fun setupMediaButtons() {
         findViewById<ImageButton>(R.id.btnPrev).setOnClickListener {
             val c = controller
-            if (c != null) c.transportControls.skipToPrevious() else sendMediaKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS)
+            if (c != null) c.transportControls.skipToPrevious() else spotifyKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS)
         }
         btnPlay.setOnClickListener {
             val c = controller
@@ -640,12 +641,12 @@ class MainActivity : Activity() {
                 if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause()
                 else c.transportControls.play()
             } else {
-                sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
+                startSpotify()
             }
         }
         findViewById<ImageButton>(R.id.btnNext).setOnClickListener {
             val c = controller
-            if (c != null) c.transportControls.skipToNext() else sendMediaKey(KeyEvent.KEYCODE_MEDIA_NEXT)
+            if (c != null) c.transportControls.skipToNext() else spotifyKey(KeyEvent.KEYCODE_MEDIA_NEXT)
         }
         findViewById<View>(R.id.mediaCard).setOnClickListener {
             if (!hasNotificationAccess()) {
@@ -654,9 +655,47 @@ class MainActivity : Activity() {
                 }
                 return@setOnClickListener
             }
-            val launch = controller?.packageName?.let { packageManager.getLaunchIntentForPackage(it) }
-            if (launch == null || !tryStart(launch)) openSlot(5)
+            openSpotify()
         }
+    }
+
+    // ---------- Spotify ----------
+
+    private fun spotifyInstalled() = packageManager.getLaunchIntentForPackage(SPOTIFY) != null
+
+    /** Abre Spotify; si no está instalado, la app de la música que esté sonando o "YT Music". */
+    private fun openSpotify() {
+        val sp = packageManager.getLaunchIntentForPackage(SPOTIFY)
+        if (sp != null && tryStart(sp.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))) return
+        val launch = controller?.packageName?.let { packageManager.getLaunchIntentForPackage(it) }
+        if (launch == null || !tryStart(launch)) openSlot(5)
+    }
+
+    /** Manda un botón (play, siguiente, anterior) directo a Spotify, aunque no esté abierto. */
+    private fun spotifyKey(code: Int) {
+        if (!spotifyInstalled()) {
+            sendMediaKey(code)
+            return
+        }
+        for (action in intArrayOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP)) {
+            val i = Intent(Intent.ACTION_MEDIA_BUTTON)
+                .setPackage(SPOTIFY)
+                .putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(action, code))
+            sendBroadcast(i)
+        }
+    }
+
+    /** Play sin nada sonando: le pide a Spotify que reproduzca; si en 2 s no arranca, abre Spotify. */
+    private fun startSpotify() {
+        if (!spotifyInstalled()) {
+            sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
+            return
+        }
+        spotifyKey(KeyEvent.KEYCODE_MEDIA_PLAY)
+        handler.postDelayed({
+            val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            if (controller?.playbackState?.state != PlaybackState.STATE_PLAYING && !am.isMusicActive) openSpotify()
+        }, 2000)
     }
 
     private fun sendMediaKey(code: Int) {
@@ -709,8 +748,10 @@ class MainActivity : Activity() {
     }
 
     private fun pickController(list: List<MediaController>?) {
+        // Spotify manda; si no hay sesión de Spotify, lo que esté sonando
+        val spotify = list?.firstOrNull { it.packageName == SPOTIFY }
         val playing = list?.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
-        bindController(playing ?: list?.firstOrNull())
+        bindController(spotify ?: playing ?: list?.firstOrNull())
     }
 
     private fun bindController(c: MediaController?) {
@@ -731,7 +772,7 @@ class MainActivity : Activity() {
         if (c == null) {
             val access = hasNotificationAccess()
             trackTitle.setText(if (access) R.string.nothing_playing else R.string.grant_access_title)
-            trackArtist.text = if (access) "" else getString(R.string.grant_access_sub)
+            trackArtist.setText(if (access) R.string.nothing_playing_sub else R.string.grant_access_sub)
             showArt(null)
             setPlayIcon((getSystemService(Context.AUDIO_SERVICE) as AudioManager).isMusicActive)
             updateProgress()

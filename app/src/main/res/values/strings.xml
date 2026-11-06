@@ -27,7 +27,8 @@
     <string name="slot_ytmusic">YT Music</string>
 
     <string name="now_playing">REPRODUCIENDO</string>
-    <string name="nothing_playing">Nada reproduciéndose</string>
+    <string name="nothing_playing">Spotify</string>
+    <string name="nothing_playing_sub">Toca ▶ para empezar tu música</string>
     <string name="grant_access_title">Mostrar la canción actual</string>
     <string name="grant_access_sub">Toca aquí y activa el acceso a notificaciones</string>
     <string name="no_access_screen">Esta pantalla no tiene ese ajuste. Los botones igual controlan la música.</string>
