@@ -24,7 +24,12 @@
     <color name="icon_tint">#FFE6E8EB</color>
     <color name="apps_overlay">#E00B0D11</color>
 
-    <!-- Tarjeta del carro: siempre oscura -->
+    <!-- Tarjeta del carro y mapa (versión de día en values-notnight) -->
+    <color name="hero_stroke">#14FFFFFF</color>
+    <color name="hero_track">#FF2A2D33</color>
+    <color name="map_bg">#FF15181C</color>
+    <color name="map_road">#FF3A4048</color>
+    <color name="map_attrib">#99FFFFFF</color>
     <color name="hero_text_main">#FFF1F3F5</color>
     <color name="hero_text_soft">#FFC9CED4</color>
     <color name="hero_text_muted">#FF8A929C</color>

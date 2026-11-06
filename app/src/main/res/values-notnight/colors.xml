@@ -14,4 +14,18 @@
     <color name="text_dim">#FF8A929C</color>
     <color name="icon_tint">#FF2A2E34</color>
     <color name="apps_overlay">#EEF2F3F5</color>
+
+    <!-- Modo día: la tarjeta del carro también se pone clara -->
+    <color name="card_top">#FFFFFFFF</color>
+    <color name="card_bottom">#FFEEF0F3</color>
+    <color name="dark_tile">#FFF3F4F6</color>
+    <color name="hero_stroke">#1F000000</color>
+    <color name="hero_track">#FFDDE1E6</color>
+    <color name="hero_text_main">#FF15171A</color>
+    <color name="hero_text_soft">#FF3D434B</color>
+    <color name="hero_text_muted">#FF68707A</color>
+    <color name="hero_text_dim">#FF8A929C</color>
+    <color name="map_bg">#FFEEF0F3</color>
+    <color name="map_road">#FFD3D8DE</color>
+    <color name="map_attrib">#99000000</color>
 </resources>

@@ -38,9 +38,10 @@
     <string name="speed_section">VELOCIDAD</string>
     <string name="mph">MPH</string>
     <string name="kmh">KM/H</string>
-    <string name="theme_section">FONDO</string>
-    <string name="theme_dark">Negro</string>
-    <string name="theme_light">Blanco</string>
+    <string name="theme_section">MODO</string>
+    <string name="theme_dark">Noche</string>
+    <string name="theme_light">Día</string>
+    <string name="day_night">Cambiar a modo día o noche</string>
     <string name="photo_section">FOTO DEL CARRO</string>
     <string name="pick_photo">Elegir de la galería</string>
     <string name="reset_photo">Usar foto original</string>

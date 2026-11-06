@@ -366,6 +366,12 @@ class MainActivity : Activity() {
     }
 
     private fun setupClicks() {
+        val dayNight = findViewById<ImageButton>(R.id.btnDayNight)
+        dayNight.setImageResource(if (appliedLight) R.drawable.ic_moon else R.drawable.ic_sun)
+        dayNight.setOnClickListener {
+            Prefs.setLightTheme(this, !appliedLight)
+            recreate()
+        }
         findViewById<View>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -376,8 +382,11 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.allApps).setOnClickListener {
             startActivity(Intent(this, AppsActivity::class.java))
         }
-        findViewById<View>(R.id.phoneBar).setOnClickListener {
-            if (!tryStart(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))) tryStart(Intent(Settings.ACTION_SETTINGS))
+        val phone = findViewById<View>(R.id.phoneBar)
+        phone.setOnClickListener { openSlot(DockSlots.PHONE) }
+        phone.setOnLongClickListener {
+            pickForSlot(DockSlots.PHONE)
+            true
         }
         val map = findViewById<View>(R.id.mapTile)
         map.setOnClickListener { openGoogleMaps() }
@@ -461,7 +470,8 @@ class MainActivity : Activity() {
         tileRow1.removeAllViews()
         tileRow2.removeAllViews()
         val gap = resources.getDimensionPixelSize(R.dimen.gap)
-        DockSlots.ALL.forEachIndexed { i, slot ->
+        findViewById<TextView>(R.id.phoneLabel).text = DockSlots.labelFor(this, dockPrefs, DockSlots.PHONE)
+        DockSlots.ALL.take(DockSlots.TILE_COUNT).forEachIndexed { i, slot ->
             val row = if (i < 3) tileRow1 else tileRow2
             val v = layoutInflater.inflate(R.layout.tile_item, row, false)
             val lp = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)

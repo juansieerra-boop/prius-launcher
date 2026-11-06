@@ -37,10 +37,13 @@ object Prefs {
     fun lightTheme(c: Context): Boolean = p(c).getBoolean("light", false)
     fun setLightTheme(c: Context, light: Boolean) = p(c).edit().putBoolean("light", light).apply()
 
-    fun carUri(c: Context): Uri? = p(c).getString("car_uri", null)?.let { Uri.parse(it) }
+    /** Cada modo (día y noche) recuerda su propia foto. */
+    private fun carKey(c: Context) = if (lightTheme(c)) "car_uri_day" else "car_uri"
+
+    fun carUri(c: Context): Uri? = p(c).getString(carKey(c), null)?.let { Uri.parse(it) }
     fun setCarUri(c: Context, uri: Uri?) {
-        if (uri == null) p(c).edit().remove("car_uri").apply()
-        else p(c).edit().putString("car_uri", uri.toString()).apply()
+        if (uri == null) p(c).edit().remove(carKey(c)).apply()
+        else p(c).edit().putString(carKey(c), uri.toString()).apply()
     }
 }
 
@@ -98,7 +101,8 @@ object CarPhoto {
             val b = decodeUri(c, uri, maxWidth)
             if (b != null) return b
         }
-        return BitmapFactory.decodeResource(c.resources, R.drawable.mi_carro)
+        val default = if (Prefs.lightTheme(c)) R.drawable.mi_carro_dia else R.drawable.mi_carro
+        return BitmapFactory.decodeResource(c.resources, default)
     }
 
     private fun decodeUri(c: Context, uri: Uri, maxWidth: Int): Bitmap? {

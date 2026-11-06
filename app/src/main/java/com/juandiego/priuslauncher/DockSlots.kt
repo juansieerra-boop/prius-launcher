@@ -16,6 +16,10 @@ object DockSlots {
 
     const val PREFS = "dock"
     const val MAPS = 3
+    const val PHONE = 6
+
+    /** Los primeros 6 son la cuadrícula; el 7 es "Conectar teléfono". */
+    const val TILE_COUNT = 6
 
     class Slot(val labelRes: Int, val iconRes: Int, val packages: List<String>)
 
@@ -43,6 +47,10 @@ object DockSlots {
         Slot(
             R.string.slot_ytmusic, R.drawable.ic_music,
             listOf("com.google.android.apps.youtube.music", "com.spotify.music")
+        ),
+        Slot(
+            R.string.connect_phone, R.drawable.ic_smartphone,
+            emptyList()
         )
     )
 

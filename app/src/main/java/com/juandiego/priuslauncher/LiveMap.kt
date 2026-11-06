@@ -28,7 +28,7 @@ import kotlin.math.tan
  * Se guardan en la memoria del launcher para que se vean aunque se pierda el internet.
  */
 object TileCache {
-    private const val URL_FMT = "https://a.basemaps.cartocdn.com/dark_all/%d/%d/%d@2x.png"
+    private const val URL_FMT = "https://a.basemaps.cartocdn.com/%s/%d/%d/%d@2x.png"
     private const val MAX_DISK_FILES = 600
 
     private val memory = object : LruCache<String, Bitmap>(16 * 1024 * 1024) {
@@ -40,11 +40,11 @@ object TileCache {
     private val main = Handler(Looper.getMainLooper())
     private var writes = 0
 
-    private fun key(z: Int, x: Int, y: Int) = "${z}_${x}_$y"
+    private fun key(style: String, z: Int, x: Int, y: Int) = "${style}_${z}_${x}_$y"
 
     /** Devuelve el cuadrito si ya está listo; si no, lo pide y avisa con onReady cuando llegue. */
-    fun get(ctx: Context, z: Int, x: Int, y: Int, onReady: () -> Unit): Bitmap? {
-        val k = key(z, x, y)
+    fun get(ctx: Context, style: String, z: Int, x: Int, y: Int, onReady: () -> Unit): Bitmap? {
+        val k = key(style, z, x, y)
         memory.get(k)?.let { return it }
         val last = failedAt[k]
         if (last != null && System.currentTimeMillis() - last < 30_000) return null
@@ -57,7 +57,7 @@ object TileCache {
                 val f = File(dir, "$k.png")
                 if (f.exists()) bmp = BitmapFactory.decodeFile(f.absolutePath)
                 if (bmp == null) {
-                    val bytes = download(String.format(URL_FMT, z, x, y))
+                    val bytes = download(String.format(URL_FMT, style, z, x, y))
                     if (bytes != null) {
                         bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                         if (bmp != null) {
@@ -121,7 +121,9 @@ class LiveMapView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? =
     private val tilePaint = Paint(Paint.FILTER_BITMAP_FLAG)
     private val arrowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val haloPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val attribPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x99FFFFFF.toInt() }
+    private val attribPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ctx.getColor(R.color.map_attrib) }
+    private val style = if ((resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+        android.content.res.Configuration.UI_MODE_NIGHT_NO) "light_all" else "dark_all"
     private val dst = RectF()
     private val arrow = Path()
     private val redraw: () -> Unit = { invalidate() }
@@ -149,7 +151,7 @@ class LiveMapView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? =
         val left = worldX - width / 2.0
         val top = worldY - height * 0.55
 
-        canvas.drawColor(0xFF15181C.toInt())
+        canvas.drawColor(mapBg)
         tilesShown = 0
         val tx0 = floor(left / ts).toInt()
         val tx1 = floor((left + width) / ts).toInt()
@@ -159,7 +161,7 @@ class LiveMapView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? =
             if (ty < 0 || ty >= n) continue
             for (tx in tx0..tx1) {
                 val wx = ((tx % n) + n) % n
-                val bmp = TileCache.get(context, ZOOM, wx, ty, redraw) ?: continue
+                val bmp = TileCache.get(context, style, ZOOM, wx, ty, redraw) ?: continue
                 val x = (tx * ts - left).toFloat()
                 val y = (ty * ts - top).toFloat()
                 dst.set(x, y, x + ts, y + ts)

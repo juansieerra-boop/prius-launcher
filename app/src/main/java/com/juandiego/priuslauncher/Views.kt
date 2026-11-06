@@ -105,6 +105,7 @@ class SegmentBar @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = 
     var level: Float = 0f
         set(v) { field = v.coerceIn(0f, 1f); invalidate() }
     private val count = 10
+    private val trackColor = ctx.getColor(R.color.hero_track)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
 
@@ -122,7 +123,7 @@ class SegmentBar @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = 
             path.lineTo(l + segW - skew, h)
             path.lineTo(l, h)
             path.close()
-            paint.color = if (i < lit) color else 0xFF2A2D33.toInt()
+            paint.color = if (i < lit) color else trackColor
             canvas.drawPath(path, paint)
         }
     }
@@ -159,8 +160,9 @@ open class MapTileView @JvmOverloads constructor(ctx: Context, attrs: AttributeS
     private val roadPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
-        color = 0xFF3A4048.toInt()
+        color = ctx.getColor(R.color.map_road)
     }
+    protected val mapBg = ctx.getColor(R.color.map_bg)
     private val routePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
@@ -183,7 +185,7 @@ open class MapTileView @JvmOverloads constructor(ctx: Context, attrs: AttributeS
     private val route = floatArrayOf(20f, 120f, 60f, 104f, 90f, 96f, 120f, 92f, 170f, 82f, 240f, 66f, 300f, 50f, 340f, 40f)
 
     override fun onDraw(canvas: Canvas) {
-        canvas.drawColor(0xFF15181C.toInt())
+        canvas.drawColor(mapBg)
         val s = max(width / 440f, height / 130f)
         val ox = (width - 440f * s) / 2f
         val oy = (height - 130f * s) / 2f
