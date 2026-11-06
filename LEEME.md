@@ -1,68 +1,43 @@
 # Prius Launcher
 
-Pantalla de inicio para la pantalla Android del Prius 2011, con la foto del carro de fondo.
+Pantalla de inicio deportiva para la pantalla Android del Prius 2011 (1024×600, Android 12).
 
-**Qué tiene**
+- Reloj grande, fecha y tu Prius con entrada animada
+- Velocidad por GPS (MPH o KM/H) con barras tipo tacómetro
+- Mapa, 6 botones de apps configurables, "Todas las apps" y control de música
+- **Personalizar** (ícono de ajustes arriba a la derecha): color de acento, MPH/KM/H y foto del carro
 
-- Tu Prius de fondo, a pantalla completa
-- Reloj grande, fecha en español y saludo según la hora
-- Tarjeta de música con título, artista, portada y botones ⏮ ⏯ ⏭ (funciona con Spotify, YouTube Music, Bluetooth, etc.)
-- Barra de abajo: Mapas · Música · Teléfono · Radio · Ajustes · Apps
-- Lista de todas tus apps
-- Se adapta a pantallas de 1024×600 y 1280×720
+## Descargar el APK
 
----
+En GitHub, pestaña **Actions** → la compilación más reciente con ✅ → abajo en **Artifacts** → **PriusLauncher-apk**. Adentro viene `app-debug.apk`.
 
-## 1. Sacar el APK
+## Instalar por ADB (Wi-Fi)
 
-Elige **una** de estas dos formas.
+1. Conecta la computadora a la **misma red** que la pantalla (si la IP es 172.20.10.x, es el hotspot de tu iPhone).
+2. En la pantalla, activa la depuración: *Ajustes → Acerca de → toca 7 veces "Número de compilación"*, y luego *Opciones de desarrollador → Depuración USB / ADB por red*.
+3. En la computadora:
 
-### Opción A: Android Studio (en tu computadora)
+```bash
+adb connect 172.20.10.10:5555
+adb install -r app-debug.apk
+adb shell cmd package set-home-activity com.juandiego.priuslauncher/.MainActivity
+```
 
-1. Instala [Android Studio](https://developer.android.com/studio) (gratis).
-2. **File → Open** y elige la carpeta `PriusLauncher`. Espera a que termine de sincronizar (la primera vez tarda unos minutos).
-3. Menú **Build → Build App Bundle(s) / APK(s) → Build APK(s)**.
-4. Cuando termine, toca **locate** en el aviso. El archivo es `app-debug.apk`.
+La última línea lo deja como pantalla de inicio. Si tu pantalla no la acepta, presiona el botón de Inicio y elige **Prius Launcher → Siempre**.
 
-### Opción B: GitHub (sin instalar nada)
+## Primer uso
 
-1. Crea un repositorio nuevo en github.com y sube todo el contenido de la carpeta `PriusLauncher` (incluida la carpeta oculta `.github`).
-2. Ve a la pestaña **Actions**. La compilación arranca sola; tarda unos 3–5 minutos.
-3. Cuando salga la palomita verde, entra a la compilación y descarga **PriusLauncher-apk** (viene en un .zip con el APK adentro).
+- Acepta el permiso de **ubicación** (para el velocímetro).
+- Toca la tarjeta de música y activa **acceso a notificaciones** para ver la canción.
+- **Mantén presionado** cualquier botón de apps para elegir qué app abre (por ejemplo, la radio de tu pantalla).
+- **Mantén presionada la foto** del carro para elegir otra de la galería.
 
-## 2. Instalarlo en la pantalla del carro
-
-1. Copia el `.apk` a una memoria USB.
-2. Conéctala a la pantalla y ábrelo con el administrador de archivos.
-3. Si te pide permiso para "instalar apps de fuentes desconocidas", actívalo para el administrador de archivos.
-
-## 3. Ponerlo como pantalla de inicio
-
-1. Presiona el botón de **Inicio** (casita).
-2. Te preguntará qué app usar: elige **Prius Launcher** → **Siempre**.
-
-Si no pregunta: **Ajustes → Apps → Apps predeterminadas → App de inicio** → Prius Launcher.
-
-> En algunas pantallas chinas el launcher de fábrica está "bloqueado". Si es tu caso, busca en los ajustes de fábrica (a veces con la clave `8888` o `1234`) una opción como *Launcher* o *Selección de escritorio*.
-
-## 4. Para ver la canción que está sonando
-
-Toca la tarjeta de música una vez y activa **Prius Launcher** en "Acceso a notificaciones". Sin esto los botones siguen funcionando, solo no se ve el título.
-
-## 5. Cambiar qué abre cada botón
-
-**Mantén presionado** cualquier botón de abajo y elige la app. Ejemplo: mantén presionado **Radio** y elige la app de radio de tu pantalla. Ahí mismo está **Restablecer** para volver a la opción original.
-
----
-
-## Personalizar
+## Personalizar el código
 
 | Quiero cambiar… | Archivo |
 |---|---|
-| La foto de fondo | Reemplaza `app/src/main/res/drawable-nodpi/prius_bg.jpg` (horizontal, 1920×1080 ideal; el carro a la izquierda) |
-| Mi nombre en el saludo | `app/src/main/res/values/strings.xml` → `driver_name` |
-| Tamaños de letra e íconos | `app/src/main/res/values/dimens.xml` (pantallas bajas) y `values-h560dp/dimens.xml` (pantallas altas) |
-| Colores | `app/src/main/res/values/colors.xml` |
-| Apps predeterminadas de cada botón | `app/src/main/java/com/juandiego/priuslauncher/DockSlots.kt` |
-
-Después de cualquier cambio vuelve a compilar (paso 1) e instala el APK nuevo encima del anterior.
+| Foto original | `app/src/main/res/drawable-nodpi/mi_carro.png` |
+| Texto "TOYOTA PRIUS / HYBRID · 2011" | `app/src/main/res/values/strings.xml` |
+| Colores de la lista | `Prefs.kt` → `PRESETS` |
+| Apps predeterminadas de los botones | `DockSlots.kt` |
+| Tamaños | `res/values/dimens.xml` y `res/values-h520dp/dimens.xml` |
