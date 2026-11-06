@@ -46,6 +46,10 @@ import kotlin.math.roundToInt
 
 class MainActivity : Activity() {
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(Themer.wrap(newBase))
+    }
+
     private companion object {
         const val REQ_LOC = 11
         const val MAX_MPH = 100f
@@ -64,7 +68,14 @@ class MainActivity : Activity() {
     private lateinit var speedValue: TextView
     private lateinit var speedUnit: TextView
     private lateinit var speedBar: SegmentBar
-    private lateinit var mapView: MapTileView
+    private lateinit var mapView: LiveMapView
+    private lateinit var navPanel: View
+    private lateinit var navIcon: ImageView
+    private lateinit var navTitle: TextView
+    private lateinit var navText: TextView
+    private lateinit var navSub: TextView
+    private lateinit var mapLabel: View
+    private lateinit var mapHint: TextView
     private lateinit var phoneIconBox: View
     private lateinit var tileRow1: LinearLayout
     private lateinit var tileRow2: LinearLayout
@@ -80,6 +91,7 @@ class MainActivity : Activity() {
     private lateinit var btnPlay: ImageButton
 
     private var ready = false
+    private var appliedLight = false
     private var failed = false
     private var accent = 0
     private var loadedPhoto: String? = "none"
@@ -114,6 +126,7 @@ class MainActivity : Activity() {
         override fun onLocationChanged(location: Location) {
             lastFix = SystemClock.elapsedRealtime()
             showSpeed(if (location.hasSpeed()) location.speed else 0f)
+            mapView.setLocation(location.latitude, location.longitude, if (location.hasBearing()) location.bearing else null)
             setGpsState(GpsState.OK)
         }
 
@@ -130,6 +143,23 @@ class MainActivity : Activity() {
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
         }
     }
+
+    /** Ubicación aproximada (Wi-Fi/red) solo para el mapa, mientras el GPS no tenga señal. */
+    private val networkListener = object : LocationListener {
+        override fun onLocationChanged(location: Location) {
+            if (lastFix == 0L) mapView.setLocation(location.latitude, location.longitude, null)
+        }
+
+        override fun onProviderEnabled(provider: String) {}
+
+        override fun onProviderDisabled(provider: String) {}
+
+        @Deprecated("Deprecated in Java")
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        }
+    }
+
+    private val navListener: () -> Unit = { updateNav() }
 
     private val mediaCallback = object : MediaController.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadata?) {
@@ -174,6 +204,7 @@ class MainActivity : Activity() {
     }
 
     private fun setupScreen() {
+        appliedLight = Prefs.lightTheme(this)
         setContentView(R.layout.activity_main)
         hideSystemUi()
         dockPrefs = getSharedPreferences(DockSlots.PREFS, MODE_PRIVATE)
@@ -181,7 +212,7 @@ class MainActivity : Activity() {
 
         findViewById<View>(R.id.root).background = GradientDrawable().apply {
             gradientType = GradientDrawable.RADIAL_GRADIENT
-            colors = intArrayOf(0xFF23262B.toInt(), 0xFF0B0C0E.toInt())
+            colors = intArrayOf(getColor(R.color.screen_glow), getColor(R.color.bg_dark))
             gradientRadius = resources.displayMetrics.widthPixels * 0.75f
             setGradientCenter(0.3f, 0.2f)
         }
@@ -223,6 +254,8 @@ class MainActivity : Activity() {
         registerReceiver(timeReceiver, filter)
         startGps()
         startMediaWatch()
+        NavState.addListener(navListener)
+        updateNav()
         handler.removeCallbacks(ticker)
         handler.post(ticker)
     }
@@ -233,6 +266,10 @@ class MainActivity : Activity() {
     }
 
     private fun resumeEverything() {
+        if (Prefs.lightTheme(this) != appliedLight) {
+            recreate()
+            return
+        }
         hideSystemUi()
         applyAccent()
         buildTiles()
@@ -252,6 +289,7 @@ class MainActivity : Activity() {
         }
         stopGps()
         stopMediaWatch()
+        NavState.removeListener(navListener)
         handler.removeCallbacksAndMessages(null)
     }
 
@@ -293,6 +331,13 @@ class MainActivity : Activity() {
         speedUnit = findViewById(R.id.speedUnit)
         speedBar = findViewById(R.id.speedBar)
         mapView = findViewById(R.id.mapView)
+        navPanel = findViewById(R.id.navPanel)
+        navIcon = findViewById(R.id.navIcon)
+        navTitle = findViewById(R.id.navTitle)
+        navText = findViewById(R.id.navText)
+        navSub = findViewById(R.id.navSub)
+        mapLabel = findViewById(R.id.mapLabel)
+        mapHint = findViewById(R.id.mapHint)
         phoneIconBox = findViewById(R.id.phoneIconBox)
         tileRow1 = findViewById(R.id.tileRow1)
         tileRow2 = findViewById(R.id.tileRow2)
@@ -335,7 +380,7 @@ class MainActivity : Activity() {
             if (!tryStart(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))) tryStart(Intent(Settings.ACTION_SETTINGS))
         }
         val map = findViewById<View>(R.id.mapTile)
-        map.setOnClickListener { openSlot(DockSlots.MAPS) }
+        map.setOnClickListener { openGoogleMaps() }
         map.setOnLongClickListener {
             pickForSlot(DockSlots.MAPS)
             true
@@ -387,7 +432,7 @@ class MainActivity : Activity() {
         btnPlay.backgroundTintList = tint
         artBox.background = GradientDrawable(
             GradientDrawable.Orientation.TL_BR,
-            intArrayOf(accent, 0xFF2A2D33.toInt())
+            intArrayOf(accent, getColor(R.color.track))
         ).apply { cornerRadius = dp(12f) }
         nowCap.setTextColor(accent)
         speedUnit.setTextColor(accent)
@@ -470,6 +515,14 @@ class MainActivity : Activity() {
         try {
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, locationListener, Looper.getMainLooper())
             gpsListening = true
+            showLastKnownLocation(lm)
+            try {
+                if (lm.allProviders.contains(LocationManager.NETWORK_PROVIDER)) {
+                    lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10_000L, 0f, networkListener, Looper.getMainLooper())
+                }
+            } catch (e: Exception) {
+                // sin ubicación por red; el mapa espera al GPS
+            }
             setGpsState(if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) GpsState.SEARCHING else GpsState.OFF)
         } catch (e: SecurityException) {
             setGpsState(GpsState.NO_PERMISSION)
@@ -482,6 +535,7 @@ class MainActivity : Activity() {
         if (!gpsListening) return
         try {
             locationManager?.removeUpdates(locationListener)
+            locationManager?.removeUpdates(networkListener)
         } catch (e: SecurityException) {
             // nada
         }
@@ -514,6 +568,53 @@ class MainActivity : Activity() {
         }
         gpsDot.backgroundTintList = ColorStateList.valueOf(color)
         gpsText.setText(text)
+    }
+
+    private fun showLastKnownLocation(lm: LocationManager) {
+        if (mapView.hasLocation) return
+        try {
+            val best = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+                .filter { lm.allProviders.contains(it) }
+                .mapNotNull { lm.getLastKnownLocation(it) }
+                .maxByOrNull { it.time }
+            if (best != null) mapView.setLocation(best.latitude, best.longitude, null)
+        } catch (e: SecurityException) {
+            // sin permiso todavía
+        }
+    }
+
+    // ---------- Mapa y navegación ----------
+
+    /** Abre Google Maps; si no está instalado, la app elegida para "Mapas". */
+    private fun openGoogleMaps() {
+        val gm = packageManager.getLaunchIntentForPackage("com.google.android.apps.maps")
+        if (gm == null || !tryStart(gm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))) openSlot(DockSlots.MAPS)
+    }
+
+    private fun updateNav() {
+        if (!ready) return
+        val nav = NavState.current
+        if (nav == null) {
+            navPanel.visibility = View.GONE
+            mapLabel.visibility = View.VISIBLE
+            mapHint.setText(R.string.maps_hint)
+            return
+        }
+        navTitle.text = nav.title.ifBlank { nav.text }
+        navText.text = if (nav.title.isBlank()) "" else nav.text
+        navText.visibility = if (navText.text.isNullOrBlank()) View.GONE else View.VISIBLE
+        navSub.text = nav.sub
+        navSub.visibility = if (nav.sub.isBlank()) View.GONE else View.VISIBLE
+        navSub.setTextColor(accent)
+        if (nav.icon != null) {
+            navIcon.setImageDrawable(nav.icon)
+            navIcon.visibility = View.VISIBLE
+        } else {
+            navIcon.visibility = View.GONE
+        }
+        navPanel.visibility = View.VISIBLE
+        mapLabel.visibility = View.GONE
+        mapHint.setText(R.string.maps_hint_nav)
     }
 
     // ---------- Música ----------

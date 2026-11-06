@@ -1,6 +1,7 @@
 package com.juandiego.priuslauncher
 
 import android.app.Activity
+import android.content.Context
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
@@ -21,6 +22,10 @@ import android.widget.Toast
  * Si se abre con EXTRA_PICK_SLOT, al tocar una app se asigna a ese botón de la barra.
  */
 class AppsActivity : Activity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(Themer.wrap(newBase))
+    }
 
     companion object {
         const val EXTRA_PICK_SLOT = "pick_slot"

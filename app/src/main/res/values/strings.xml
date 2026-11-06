@@ -14,7 +14,8 @@
     <string name="gps_no_permission">Toca para activar GPS</string>
 
     <string name="maps_label">MAPAS</string>
-    <string name="maps_hint">Abrir navegación ›</string>
+    <string name="maps_hint">Abrir Google Maps ›</string>
+    <string name="maps_hint_nav">Google Maps ›</string>
     <string name="connect_phone">Conectar teléfono</string>
     <string name="all_apps">Todas las apps</string>
 
@@ -37,6 +38,9 @@
     <string name="speed_section">VELOCIDAD</string>
     <string name="mph">MPH</string>
     <string name="kmh">KM/H</string>
+    <string name="theme_section">FONDO</string>
+    <string name="theme_dark">Negro</string>
+    <string name="theme_light">Blanco</string>
     <string name="photo_section">FOTO DEL CARRO</string>
     <string name="pick_photo">Elegir de la galería</string>
     <string name="reset_photo">Usar foto original</string>

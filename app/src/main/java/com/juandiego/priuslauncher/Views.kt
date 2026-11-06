@@ -130,6 +130,7 @@ class SegmentBar @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = 
 
 /** Línea de progreso fina con puntas redondas. */
 class ProgressLine @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
+    private val trackColor = ctx.getColor(R.color.track)
     var color: Int = Color.RED
         set(v) { field = v; invalidate() }
     var level: Float = 0f
@@ -140,7 +141,7 @@ class ProgressLine @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? 
     override fun onDraw(canvas: Canvas) {
         val rad = height / 2f
         r.set(0f, 0f, width.toFloat(), height.toFloat())
-        paint.color = 0xFF2A2D33.toInt()
+        paint.color = trackColor
         canvas.drawRoundRect(r, rad, rad, paint)
         if (level > 0f) {
             r.right = max(height.toFloat(), width * level)
@@ -151,7 +152,7 @@ class ProgressLine @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? 
 }
 
 /** Dibujo de mapa oscuro con una ruta del color elegido (abre la app de mapas al tocarlo). */
-class MapTileView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
+open class MapTileView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
     var accent: Int = Color.RED
         set(v) { field = v; invalidate() }
 

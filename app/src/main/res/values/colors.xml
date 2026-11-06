@@ -18,4 +18,15 @@
     <color name="accent_default">#FFE5243B</color>
     <color name="gps_ok">#FF3DDC84</color>
     <color name="gps_wait">#FFFFC400</color>
+
+    <!-- Cambian con el fondo (versión clara en values-notnight) -->
+    <color name="screen_glow">#FF23262B</color>
+    <color name="icon_tint">#FFE6E8EB</color>
+    <color name="apps_overlay">#E00B0D11</color>
+
+    <!-- Tarjeta del carro: siempre oscura -->
+    <color name="hero_text_main">#FFF1F3F5</color>
+    <color name="hero_text_soft">#FFC9CED4</color>
+    <color name="hero_text_muted">#FF8A929C</color>
+    <color name="hero_text_dim">#FF7B838D</color>
 </resources>

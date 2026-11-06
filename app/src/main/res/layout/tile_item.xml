@@ -14,7 +14,7 @@
         android:layout_width="@dimen/tile_icon"
         android:layout_height="@dimen/tile_icon"
         android:importantForAccessibility="no"
-        android:tint="#FFE6E8EB" />
+        android:tint="@color/icon_tint" />
 
     <TextView
         android:id="@+id/tileLabel"

@@ -34,10 +34,24 @@ object Prefs {
     fun useKmh(c: Context): Boolean = p(c).getBoolean("kmh", false)
     fun setKmh(c: Context, kmh: Boolean) = p(c).edit().putBoolean("kmh", kmh).apply()
 
+    fun lightTheme(c: Context): Boolean = p(c).getBoolean("light", false)
+    fun setLightTheme(c: Context, light: Boolean) = p(c).edit().putBoolean("light", light).apply()
+
     fun carUri(c: Context): Uri? = p(c).getString("car_uri", null)?.let { Uri.parse(it) }
     fun setCarUri(c: Context, uri: Uri?) {
         if (uri == null) p(c).edit().remove("car_uri").apply()
         else p(c).edit().putString("car_uri", uri.toString()).apply()
+    }
+}
+
+/** Aplica el fondo elegido (negro o blanco) a cada pantalla. */
+object Themer {
+    fun wrap(base: Context): Context {
+        val cfg = android.content.res.Configuration(base.resources.configuration)
+        val night = if (Prefs.lightTheme(base)) android.content.res.Configuration.UI_MODE_NIGHT_NO
+        else android.content.res.Configuration.UI_MODE_NIGHT_YES
+        cfg.uiMode = (cfg.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or night
+        return base.createConfigurationContext(cfg)
     }
 }
 
