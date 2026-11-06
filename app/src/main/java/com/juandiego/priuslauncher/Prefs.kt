@@ -34,6 +34,9 @@ object Prefs {
     fun useKmh(c: Context): Boolean = p(c).getBoolean("kmh", false)
     fun setKmh(c: Context, kmh: Boolean) = p(c).edit().putBoolean("kmh", kmh).apply()
 
+    fun carAnimation(c: Context): Boolean = p(c).getBoolean("car_anim", true)
+    fun setCarAnimation(c: Context, on: Boolean) = p(c).edit().putBoolean("car_anim", on).apply()
+
     fun lightTheme(c: Context): Boolean = p(c).getBoolean("light", false)
     fun setLightTheme(c: Context, light: Boolean) = p(c).edit().putBoolean("light", light).apply()
 

@@ -257,6 +257,7 @@ class MainActivity : Activity() {
         startMediaWatch()
         NavState.addListener(navListener)
         updateNav()
+        carPhoto.start()
         handler.removeCallbacks(ticker)
         handler.post(ticker)
     }
@@ -291,6 +292,7 @@ class MainActivity : Activity() {
         stopGps()
         stopMediaWatch()
         NavState.removeListener(navListener)
+        carPhoto.stop()
         handler.removeCallbacksAndMessages(null)
     }
 
@@ -420,7 +422,7 @@ class MainActivity : Activity() {
         val current = Prefs.carUri(this)?.toString()
         if (current == loadedPhoto) return
         loadedPhoto = current
-        carPhoto.setImageBitmap(CarPhoto.load(this, 1400))
+        carPhoto.setImageBitmap(CarPhoto.load(this, 1400), current == null)
     }
 
     /** Entrada suave: aparece y se desliza desde la izquierda (600 ms). */
@@ -450,6 +452,8 @@ class MainActivity : Activity() {
         speedBar.color = accent
         mapView.accent = accent
         stripes.accent = accent
+        carPhoto.accent = accent
+        carPhoto.animationEnabled = Prefs.carAnimation(this)
         updateDate()
     }
 
@@ -563,6 +567,7 @@ class MainActivity : Activity() {
 
     private fun showSpeed(mps: Float) {
         lastMps = mps
+        carPhoto.speedMps = mps
         val kmh = Prefs.useKmh(this)
         val v = if (kmh) mps * 3.6f else mps * 2.23694f
         speedValue.text = (if (v < 1f) 0 else v.roundToInt()).toString()

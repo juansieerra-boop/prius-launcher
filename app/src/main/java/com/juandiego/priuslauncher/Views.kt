@@ -24,53 +24,6 @@ import kotlin.math.roundToInt
 private fun View.dp(v: Float) = v * resources.displayMetrics.density
 private fun withAlpha(color: Int, alpha: Int) = (color and 0x00FFFFFF) or (alpha shl 24)
 
-/** La foto del carro, centrada y con las orillas difuminadas para que se funda con la tarjeta. */
-class CarPhotoView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
-    private var bitmap: Bitmap? = null
-    private val bmpPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-    private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
-    }
-    private val dst = RectF()
-    private val maskMatrix = Matrix()
-
-    fun setImageBitmap(b: Bitmap?) {
-        bitmap = b
-        invalidate()
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        val b = bitmap ?: return
-        if (width == 0 || height == 0) return
-        val scale = min(width.toFloat() / b.width, height.toFloat() / b.height)
-        val w = b.width * scale
-        val h = b.height * scale
-        val left = (width - w) / 2f
-        val top = (height - h) / 2f
-        dst.set(left, top, left + w, top + h)
-
-        val save = canvas.saveLayer(dst, null)
-        canvas.drawBitmap(b, null, dst, bmpPaint)
-
-        // Máscara ovalada: opaca en el centro, transparente en las orillas
-        val cx = dst.centerX()
-        val cy = dst.top + h * 0.54f
-        val rx = w * 0.54f
-        val ry = h * 0.52f
-        val g = RadialGradient(
-            cx, cy, rx,
-            intArrayOf(Color.BLACK, Color.BLACK, Color.TRANSPARENT),
-            floatArrayOf(0f, 0.66f, 1f),
-            Shader.TileMode.CLAMP
-        )
-        maskMatrix.setScale(1f, ry / rx, cx, cy)
-        g.setLocalMatrix(maskMatrix)
-        maskPaint.shader = g
-        canvas.drawRect(dst, maskPaint)
-        canvas.restoreToCount(save)
-    }
-}
-
 /** Dos franjas diagonales de carreras, del color elegido. */
 class StripesView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
     var accent: Int = Color.RED

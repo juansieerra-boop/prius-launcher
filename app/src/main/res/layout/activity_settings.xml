@@ -176,6 +176,37 @@
 
                     <TextView
                         style="@style/SectionLabel"
+                        android:text="@string/anim_section" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/animOn"
+                            style="@style/ChoiceButton"
+                            android:text="@string/anim_on" />
+
+                        <TextView
+                            android:id="@+id/animOff"
+                            style="@style/ChoiceButton"
+                            android:layout_marginStart="10dp"
+                            android:text="@string/anim_off" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/tile_bg"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        style="@style/SectionLabel"
                         android:text="@string/photo_section" />
 
                     <TextView

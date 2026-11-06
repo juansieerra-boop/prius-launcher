@@ -47,6 +47,15 @@ class SettingsActivity : Activity() {
         findViewById<View>(R.id.themeDark).setOnClickListener { setLight(false) }
         findViewById<View>(R.id.themeLight).setOnClickListener { setLight(true) }
 
+        findViewById<View>(R.id.animOn).setOnClickListener {
+            Prefs.setCarAnimation(this, true)
+            refresh()
+        }
+        findViewById<View>(R.id.animOff).setOnClickListener {
+            Prefs.setCarAnimation(this, false)
+            refresh()
+        }
+
         unitMph.setOnClickListener {
             Prefs.setKmh(this, false)
             refresh()
@@ -133,6 +142,9 @@ class SettingsActivity : Activity() {
         val kmh = Prefs.useKmh(this)
         styleChoice(unitMph, !kmh, accent)
         styleChoice(unitKmh, kmh, accent)
+        val anim = Prefs.carAnimation(this)
+        styleChoice(findViewById(R.id.animOn), anim, accent)
+        styleChoice(findViewById(R.id.animOff), !anim, accent)
         val light = Prefs.lightTheme(this)
         styleChoice(findViewById(R.id.themeDark), !light, accent)
         styleChoice(findViewById(R.id.themeLight), light, accent)

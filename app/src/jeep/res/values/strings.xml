@@ -4,4 +4,6 @@
     <string name="app_name">Jeep Launcher</string>
     <string name="brand_title">JEEP WRANGLER</string>
     <string name="brand_sub">SAHARA · LIMITED EDITION</string>
+    <string name="headlights" translatable="false">0.216,0.470,0.331,0.470</string>
+    <string name="floor_y" translatable="false">0.80</string>
 </resources>

@@ -6,6 +6,10 @@
     <string name="brand_title">TOYOTA PRIUS</string>
     <string name="brand_sub">HYBRID · 2011</string>
 
+    <!-- Animación: faros (x1,y1,x2,y2) y altura del piso, como fracción de la foto del carro -->
+    <string name="headlights" translatable="false">0.196,0.490,0.436,0.540</string>
+    <string name="floor_y" translatable="false">0.87</string>
+
     <string name="unit_mph">MPH · GPS</string>
     <string name="unit_kmh">KM/H · GPS</string>
     <string name="gps_ok">GPS conectado</string>
@@ -43,6 +47,9 @@
     <string name="theme_dark">Noche</string>
     <string name="theme_light">Día</string>
     <string name="day_night">Cambiar a modo día o noche</string>
+    <string name="anim_section">ANIMACIÓN DEL CARRO</string>
+    <string name="anim_on">Encendida</string>
+    <string name="anim_off">Apagada</string>
     <string name="photo_section">FOTO DEL CARRO</string>
     <string name="pick_photo">Elegir de la galería</string>
     <string name="reset_photo">Usar foto original</string>
