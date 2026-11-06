@@ -2,71 +2,113 @@
 <resources>
     <string name="app_name">Prius Launcher</string>
 
-    <!-- Cambia aquí el nombre que sale arriba a la derecha -->
+    <!-- Nombre del carro que sale arriba -->
     <string name="brand_title">TOYOTA PRIUS</string>
     <string name="brand_sub">HYBRID · 2011</string>
 
-    <!-- Animación: faros (x1,y1,x2,y2) y altura del piso, como fracción de la foto del carro -->
-    <string name="headlights" translatable="false">0.196,0.490,0.436,0.540</string>
-    <string name="floor_y" translatable="false">0.87</string>
+    <!-- Animación: faros (x,y pares) y altura del piso, como fracción de la imagen Art -->
+    <string name="headlights" translatable="false">0.310,0.601,0.267,0.617,0.076,0.501,0.274,0.771</string>
+    <string name="floor_y" translatable="false">0.90</string>
 
-    <string name="unit_mph">MPH · GPS</string>
-    <string name="unit_kmh">KM/H · GPS</string>
-    <string name="gps_ok">GPS conectado</string>
-    <string name="gps_searching">Buscando GPS…</string>
-    <string name="gps_off">GPS apagado</string>
-    <string name="gps_no_permission">Toca para activar GPS</string>
-
-    <string name="maps_label">MAPAS</string>
-    <string name="maps_hint">Abrir Google Maps ›</string>
-    <string name="maps_hint_nav">Google Maps ›</string>
     <string name="connect_phone">Conectar teléfono</string>
     <string name="all_apps">Todas las apps</string>
-
     <string name="slot_radio">Radio</string>
     <string name="slot_btmusic">Música BT</string>
     <string name="slot_youtube">YouTube</string>
     <string name="slot_maps">Mapas</string>
     <string name="slot_video">Video</string>
     <string name="slot_ytmusic">YT Music</string>
-
+    <string name="sport_suffix">SPORT</string>
+    <string name="unit_mph">MPH</string>
+    <string name="unit_kmh">KM/H</string>
+    <string name="unit_mi">MI</string>
+    <string name="unit_km">KM</string>
+    <string name="gps_ok">GPS</string>
+    <string name="gps_searching">Buscando GPS…</string>
+    <string name="gps_off">GPS apagado</string>
+    <string name="gps_no_permission">Activar GPS</string>
+    <string name="navigate">Navegar</string>
+    <string name="maps_label">MAPA</string>
+    <string name="maps_google">GOOGLE MAPS</string>
+    <string name="maps_hint">Toca el mapa para navegar</string>
     <string name="now_playing">REPRODUCIENDO</string>
     <string name="nothing_playing">Spotify</string>
     <string name="nothing_playing_sub">Toca ▶ para empezar tu música</string>
     <string name="grant_access_title">Mostrar la canción actual</string>
     <string name="grant_access_sub">Toca aquí y activa el acceso a notificaciones</string>
     <string name="no_access_screen">Esta pantalla no tiene ese ajuste. Los botones igual controlan la música.</string>
-
-    <string name="settings_title">Personalizar</string>
-    <string name="accent_section">COLOR</string>
-    <string name="custom_color">Color personalizado (desliza)</string>
-    <string name="speed_section">VELOCIDAD</string>
-    <string name="mph">MPH</string>
-    <string name="kmh">KM/H</string>
-    <string name="theme_section">MODO</string>
-    <string name="theme_dark">Noche</string>
-    <string name="theme_light">Día</string>
+    <string name="stat_distance">DISTANCIA</string>
+    <string name="stat_time">TIEMPO</string>
+    <string name="stat_max">VEL. MÁX</string>
+    <string name="weather_clear">Despejado</string>
+    <string name="weather_partly">Parcialmente nublado</string>
+    <string name="weather_cloudy">Nublado</string>
+    <string name="weather_fog">Neblina</string>
+    <string name="weather_drizzle">Llovizna</string>
+    <string name="weather_rain">Lluvia</string>
+    <string name="weather_snow">Nieve</string>
+    <string name="weather_showers">Chubascos</string>
+    <string name="weather_storm">Tormenta</string>
+    <string name="weather_loading">Clima…</string>
     <string name="day_night">Cambiar a modo día o noche</string>
-    <string name="anim_section">ANIMACIÓN DEL CARRO</string>
-    <string name="anim_on">Encendida</string>
-    <string name="anim_off">Apagada</string>
-    <string name="photo_section">FOTO DEL CARRO</string>
-    <string name="pick_photo">Elegir de la galería</string>
-    <string name="reset_photo">Usar foto original</string>
-    <string name="photo_hint">También puedes mantener presionada la foto en la pantalla de inicio para cambiarla.</string>
-    <string name="photo_changed">Foto actualizada</string>
-    <string name="photo_reset">Se restauró la foto original</string>
-
+    <string name="android_settings">Ajustes de Android</string>
+    <string name="prev">Anterior</string>
+    <string name="play_pause">Reproducir o pausar</string>
+    <string name="next">Siguiente</string>
+    <string name="close">Cerrar</string>
+    <string name="hint_first">Consejo: con el + agregas apps a la barra; mantén presionada una para moverla o quitarla.</string>
+    <string name="need_nav_service">Activa la barra de navegación en Personalizar</string>
+    <string name="dock_move_left">Mover a la izquierda</string>
+    <string name="dock_move_right">Mover a la derecha</string>
+    <string name="dock_remove">Quitar de la barra</string>
+    <string name="dock_add">Agregar app</string>
+    <string name="dock_full">La barra ya está llena</string>
+    <string name="add_to_dock">Elige una app para la barra</string>
+    <string name="added_to_dock">%1$s se agregó a la barra</string>
+    <string name="wifi">Wi-Fi</string>
+    <string name="bluetooth">Bluetooth</string>
     <string name="apps_title">Aplicaciones</string>
     <string name="pick_for">Elige la app para «%1$s»</string>
     <string name="assigned">%1$s ahora está en «%2$s»</string>
     <string name="reset">Restablecer</string>
     <string name="reset_done">«%1$s» volvió a su app original</string>
-    <string name="hint_long_press">Consejo: mantén presionado un botón para elegir qué app abre. El ícono de ajustes cambia el color.</string>
     <string name="cant_open">No se pudo abrir la app</string>
-
-    <string name="close">Cerrar</string>
-    <string name="prev">Anterior</string>
-    <string name="play_pause">Reproducir o pausar</string>
-    <string name="next">Siguiente</string>
+    <string name="settings_title">Personalizar</string>
+    <string name="style_section">ESTILO</string>
+    <string name="style_art">Art</string>
+    <string name="style_sport">Sport</string>
+    <string name="accent_section">COLOR</string>
+    <string name="custom_color">Color personalizado (desliza)</string>
+    <string name="theme_section">MODO</string>
+    <string name="theme_dark">Noche</string>
+    <string name="theme_light">Día</string>
+    <string name="theme_sport_note">En Sport la pantalla siempre es oscura.</string>
+    <string name="speed_section">VELOCIDAD</string>
+    <string name="mph">MPH</string>
+    <string name="kmh">KM/H</string>
+    <string name="lang_section">IDIOMA · LANGUAGE</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_en">English</string>
+    <string name="anim_section">ANIMACIÓN DEL CARRO</string>
+    <string name="anim_on">Encendida</string>
+    <string name="anim_off">Apagada</string>
+    <string name="photo_section">FOTO DEL CARRO (ART)</string>
+    <string name="pick_photo">Elegir de la galería</string>
+    <string name="reset_photo">Usar la original</string>
+    <string name="photo_changed">Foto actualizada</string>
+    <string name="photo_reset">Se restauró la imagen original</string>
+    <string name="nav_section">BARRA DE NAVEGACIÓN</string>
+    <string name="nav_on">Activada</string>
+    <string name="nav_off">Desactivada: actívala en accesibilidad</string>
+    <string name="nav_show">Mostrar</string>
+    <string name="nav_hide">Ocultar</string>
+    <string name="nav_left">Izquierda</string>
+    <string name="nav_bottom">Abajo</string>
+    <string name="nav_open_settings">Ajustes de accesibilidad</string>
+    <string name="android_section">ANDROID</string>
+    <string name="maps_section">MAPA</string>
+    <string name="maps_status_google">Google Maps en vivo</string>
+    <string name="maps_status_fallback">Mapa de respaldo (falta la clave de Google)</string>
+    <string name="nav_service_label">Barra de navegación del launcher</string>
+    <string name="nav_service_desc">Muestra los botones de atrás, inicio y multitarea encima de las apps.</string>
 </resources>

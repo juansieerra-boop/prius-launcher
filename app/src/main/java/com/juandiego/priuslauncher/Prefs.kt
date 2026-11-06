@@ -37,7 +37,30 @@ object Prefs {
     fun carAnimation(c: Context): Boolean = p(c).getBoolean("car_anim", true)
     fun setCarAnimation(c: Context, on: Boolean) = p(c).edit().putBoolean("car_anim", on).apply()
 
-    fun lightTheme(c: Context): Boolean = p(c).getBoolean("light", false)
+    /** "art" o "sport" */
+    fun style(c: Context): String = p(c).getString("style", "art") ?: "art"
+    fun setStyle(c: Context, v: String) = p(c).edit().putString("style", v).apply()
+    fun isSport(c: Context) = style(c) == "sport"
+
+    /** "es" o "en" */
+    fun lang(c: Context): String = p(c).getString("lang", "es") ?: "es"
+    fun setLang(c: Context, v: String) = p(c).edit().putString("lang", v).apply()
+
+    fun navOverlay(c: Context): Boolean = p(c).getBoolean("nav_on", true)
+    fun setNavOverlay(c: Context, on: Boolean) = p(c).edit().putBoolean("nav_on", on).apply()
+    fun navBottom(c: Context): Boolean = p(c).getBoolean("nav_bottom", false)
+    fun setNavBottom(c: Context, v: Boolean) = p(c).edit().putBoolean("nav_bottom", v).apply()
+
+    /** Apps de la barra de abajo, en orden. */
+    fun dockApps(c: Context): MutableList<String>? =
+        p(c).getString("dock_apps", null)?.split("|")?.filter { it.isNotBlank() }?.toMutableList()
+    fun setDockApps(c: Context, list: List<String>) = p(c).edit().putString("dock_apps", list.joinToString("|")).apply()
+
+    fun prefs(c: Context): android.content.SharedPreferences = p(c)
+
+    /** Sport siempre es oscuro. */
+    fun lightTheme(c: Context): Boolean = p(c).getBoolean("light", false) && !isSport(c)
+    fun lightSetting(c: Context): Boolean = p(c).getBoolean("light", false)
     fun setLightTheme(c: Context, light: Boolean) = p(c).edit().putBoolean("light", light).apply()
 
     /** Cada modo (día y noche) recuerda su propia foto. */
@@ -50,10 +73,11 @@ object Prefs {
     }
 }
 
-/** Aplica el fondo elegido (negro o blanco) a cada pantalla. */
+/** Aplica el modo (día/noche) y el idioma elegidos a cada pantalla. */
 object Themer {
     fun wrap(base: Context): Context {
         val cfg = android.content.res.Configuration(base.resources.configuration)
+        cfg.setLocale(java.util.Locale(Prefs.lang(base)))
         val night = if (Prefs.lightTheme(base)) android.content.res.Configuration.UI_MODE_NIGHT_NO
         else android.content.res.Configuration.UI_MODE_NIGHT_YES
         cfg.uiMode = (cfg.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or night
@@ -104,8 +128,8 @@ object CarPhoto {
             val b = decodeUri(c, uri, maxWidth)
             if (b != null) return b
         }
-        val default = if (Prefs.lightTheme(c)) R.drawable.mi_carro_dia else R.drawable.mi_carro
-        return BitmapFactory.decodeResource(c.resources, default)
+        val default = if (Prefs.lightTheme(c)) R.drawable.art_dia else R.drawable.art_noche
+        return BitmapFactory.decodeResource(c.resources, default, BitmapFactory.Options().apply { inScaled = false })
     }
 
     private fun decodeUri(c: Context, uri: Uri, maxWidth: Int): Bitmap? {

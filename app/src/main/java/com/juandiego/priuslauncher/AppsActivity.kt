@@ -29,6 +29,7 @@ class AppsActivity : Activity() {
 
     companion object {
         const val EXTRA_PICK_SLOT = "pick_slot"
+        const val EXTRA_ADD_DOCK = "add_dock"
     }
 
     private data class AppEntry(val label: String, val component: ComponentName)
@@ -36,6 +37,7 @@ class AppsActivity : Activity() {
     private val apps = mutableListOf<AppEntry>()
     private val iconCache = HashMap<ComponentName, Drawable>()
     private var pickSlot = -1
+    private var addDock = false
 
     private val adapter = object : BaseAdapter() {
         override fun getCount() = apps.size
@@ -73,6 +75,8 @@ class AppsActivity : Activity() {
         } else {
             title.setText(R.string.apps_title)
         }
+        addDock = intent.getBooleanExtra(EXTRA_ADD_DOCK, false)
+        if (addDock) title.setText(R.string.add_to_dock)
 
         findViewById<View>(R.id.btnClose).setOnClickListener { finish() }
 
@@ -126,6 +130,15 @@ class AppsActivity : Activity() {
         }
 
     private fun onAppClick(entry: AppEntry) {
+        if (addDock) {
+            val ok = Dock.add(this, entry.component)
+            Toast.makeText(
+                this, if (ok) getString(R.string.added_to_dock, entry.label) else getString(R.string.dock_full),
+                Toast.LENGTH_SHORT
+            ).show()
+            finish()
+            return
+        }
         if (pickSlot >= 0) {
             prefs().edit().putString(DockSlots.key(pickSlot), entry.component.flattenToString()).apply()
             val slotName = getString(DockSlots.ALL[pickSlot].labelRes)

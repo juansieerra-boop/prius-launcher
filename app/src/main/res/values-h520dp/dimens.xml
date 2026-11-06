@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Pantallas de 1024x600 en densidad normal -->
+<!-- Pantallas altas (1024x600 o 1280x720 en densidad normal) -->
 <resources>
-    <dimen name="screen_pad">14dp</dimen>
-    <dimen name="gap">10dp</dimen>
-    <dimen name="clock_size">64sp</dimen>
-    <dimen name="date_size">12sp</dimen>
-    <dimen name="photo_top">92dp</dimen>
-    <dimen name="bottom_row_h">104dp</dimen>
-    <dimen name="speed_w">140dp</dimen>
-    <dimen name="speed_size">44sp</dimen>
-    <dimen name="bar_h">60dp</dimen>
-    <dimen name="all_h">42dp</dimen>
-    <dimen name="tile_icon">28dp</dimen>
-    <dimen name="tile_label">12sp</dimen>
-    <dimen name="media_pad">16dp</dimen>
-    <dimen name="art_size">84dp</dimen>
-    <dimen name="ctrl_size">44dp</dimen>
-    <dimen name="play_size">52dp</dimen>
-    <dimen name="title_size">17sp</dimen>
+    <dimen name="dock_h">64dp</dimen>
+    <dimen name="dock_icon">36dp</dimen>
+    <dimen name="dock_btn">46dp</dimen>
+    <dimen name="speed_art">92sp</dimen>
+    <dimen name="speed_sport">124sp</dimen>
+    <dimen name="pad">22dp</dimen>
+    <dimen name="card_w">330dp</dimen>
+    <dimen name="art_size">72dp</dimen>
+    <dimen name="stat_value">32sp</dimen>
+    <dimen name="side_w">200dp</dimen>
+    <dimen name="map_w">220dp</dimen>
+    <dimen name="map_h">210dp</dimen>
 </resources>

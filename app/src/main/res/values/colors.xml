@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Colores de noche (los de día están en values-notnight) -->
 <resources>
-    <color name="bg_dark">#FF0B0C0E</color>
+    <color name="bg_dark">#FF000000</color>
+    <color name="screen_glow">#FF0B0C0E</color>
     <color name="card_top">#FF202328</color>
     <color name="card_bottom">#FF121418</color>
-    <color name="tile_top">#FF22252A</color>
-    <color name="tile_bottom">#FF16181C</color>
+    <color name="tile_top">#FF1E2125</color>
+    <color name="tile_bottom">#FF15171A</color>
     <color name="tile_pressed">#FF2E3238</color>
     <color name="dark_tile">#FF111316</color>
-    <color name="stroke">#14FFFFFF</color>
+    <color name="float_card">#EB16171A</color>
+    <color name="dock_bg">#FF0E0F11</color>
+    <color name="stroke">#17FFFFFF</color>
     <color name="track">#FF2A2D33</color>
-
-    <color name="text_main">#FFF1F3F5</color>
-    <color name="text_soft">#FFC9CED4</color>
-    <color name="text_muted">#FF8A929C</color>
-    <color name="text_dim">#FF7B838D</color>
-
-    <color name="accent_default">#FFE5243B</color>
-    <color name="gps_ok">#FF3DDC84</color>
-    <color name="gps_wait">#FFFFC400</color>
-
-    <!-- Cambian con el fondo (versión clara en values-notnight) -->
-    <color name="screen_glow">#FF23262B</color>
-    <color name="icon_tint">#FFE6E8EB</color>
-    <color name="apps_overlay">#E00B0D11</color>
-
-    <!-- Tarjeta del carro y mapa (versión de día en values-notnight) -->
     <color name="hero_stroke">#14FFFFFF</color>
     <color name="hero_track">#FF2A2D33</color>
     <color name="map_bg">#FF15181C</color>
     <color name="map_road">#FF3A4048</color>
     <color name="map_attrib">#99FFFFFF</color>
+
+    <color name="text_main">#FFF2F3F5</color>
+    <color name="text_soft">#FFC9CED4</color>
+    <color name="text_muted">#FF8A8F98</color>
+    <color name="text_dim">#FF7C818A</color>
+    <color name="icon_tint">#FFDADDE2</color>
+    <color name="apps_overlay">#EB0B0D11</color>
     <color name="hero_text_main">#FFF1F3F5</color>
     <color name="hero_text_soft">#FFC9CED4</color>
     <color name="hero_text_muted">#FF8A929C</color>
     <color name="hero_text_dim">#FF7B838D</color>
+
+    <color name="accent_default">#FFE5243B</color>
+    <color name="gps_ok">#FF3DDC84</color>
+    <color name="gps_wait">#FFFFC400</color>
+    <color name="sun">#FFF5B400</color>
 </resources>

@@ -1,14 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Mapa en vivo -->
+    <!-- Mapa en vivo y clima -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Velocímetro por GPS -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-feature
         android:name="android.hardware.location.gps"
+        android:required="false" />
+
+    <!-- Botones de Wi-Fi y Bluetooth de la barra -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.wifi"
         android:required="false" />
 
     <!-- Necesario en Android 11+ para poder ver la lista de apps instaladas -->
@@ -27,10 +45,14 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.PriusLauncher">
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+
         <activity
             android:name=".MainActivity"
             android:clearTaskOnLaunch="true"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density|locale|layoutDirection"
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleTask"
@@ -58,7 +80,7 @@
             android:exported="false"
             android:screenOrientation="sensorLandscape" />
 
-        <!-- Permite leer qué canción está sonando (el usuario debe darle acceso a notificaciones) -->
+        <!-- Lee la música que suena y la navegación de Google Maps (acceso a notificaciones) -->
         <service
             android:name=".MediaListenerService"
             android:exported="true"
@@ -67,6 +89,20 @@
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
+        </service>
+
+        <!-- Barra flotante de atrás / inicio / multitarea (servicio de accesibilidad) -->
+        <service
+            android:name=".NavService"
+            android:exported="true"
+            android:label="@string/nav_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/nav_service" />
         </service>
     </application>
 </manifest>

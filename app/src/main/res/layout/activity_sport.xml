@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Estilo SPORT: negro y minimalista. Los tags a1/a2/a3 se pintan con tu color:
+     a1 = color completo, a2 = color tenue, a3 = líneas muy tenues -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF000000">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Arriba: carro, hora, clima y ajustes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/pad"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp">
+
+            <TextView
+                android:id="@+id/carName"
+                style="@style/Label"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:tag="a2" />
+
+            <TextClock
+                android:id="@+id/clockTop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-light"
+                android:format12Hour="h:mm"
+                android:format24Hour="H:mm"
+                android:letterSpacing="0.06"
+                android:tag="a1"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/weatherIcon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_sun"
+                    android:tag="a1" />
+
+                <TextView
+                    android:id="@+id/weatherTemp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-light"
+                    android:tag="a1"
+                    android:text="--°"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/weatherDesc"
+                    style="@style/Label"
+                    android:layout_marginStart="12dp"
+                    android:maxWidth="160dp"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:tag="a2"
+                    android:text="@string/weather_loading"
+                    android:textAllCaps="true" />
+
+                <ImageButton
+                    android:id="@+id/btnAndroid"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/chip_bg"
+                    android:contentDescription="@string/android_settings"
+                    android:padding="9dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_gear"
+                    android:tag="a2" />
+
+                <ImageButton
+                    android:id="@+id/btnSettings"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/chip_bg"
+                    android:contentDescription="@string/settings_title"
+                    android:padding="9dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_tune"
+                    android:tag="a2" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Centro -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <!-- Izquierda: datos del viaje -->
+            <LinearLayout
+                android:layout_width="@dimen/side_w"
+                android:layout_height="match_parent"
+                android:layout_marginStart="@dimen/pad"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <TextView style="@style/Label" android:tag="a2" android:text="@string/stat_distance" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="bottom"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/statDistance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-thin"
+                        android:tag="a1"
+                        android:text="0.0"
+                        android:textSize="@dimen/stat_value" />
+
+                    <TextView
+                        android:id="@+id/statDistanceUnit"
+                        style="@style/Label"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginBottom="5dp"
+                        android:tag="a2" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="12dp"
+                    android:tag="a3" />
+
+                <TextView style="@style/Label" android:tag="a2" android:text="@string/stat_time" />
+
+                <TextView
+                    android:id="@+id/statTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-thin"
+                    android:tag="a1"
+                    android:text="00:00"
+                    android:textSize="@dimen/stat_value" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="12dp"
+                    android:tag="a3" />
+
+                <TextView style="@style/Label" android:tag="a2" android:text="@string/stat_max" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="bottom"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/statMax"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-thin"
+                        android:tag="a1"
+                        android:text="0"
+                        android:textSize="@dimen/stat_value" />
+
+                    <TextView
+                        android:id="@+id/statMaxUnit"
+                        style="@style/Label"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginBottom="5dp"
+                        android:tag="a2" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:tag="a3" />
+            </LinearLayout>
+
+            <!-- Centro: velocidad y carro -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/speedValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-thin"
+                    android:includeFontPadding="false"
+                    android:tag="a1"
+                    android:text="0"
+                    android:textSize="@dimen/speed_sport" />
+
+                <TextView
+                    android:id="@+id/speedUnit"
+                    style="@style/Label"
+                    android:letterSpacing="0.5"
+                    android:tag="a2" />
+
+                <com.juandiego.priuslauncher.TickRuler
+                    android:id="@+id/tickRuler"
+                    android:layout_width="280dp"
+                    android:layout_height="16dp"
+                    android:layout_marginTop="8dp" />
+
+                <com.juandiego.priuslauncher.SportCarView
+                    android:id="@+id/sportCar"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <!-- Derecha: Google Maps y la siguiente vuelta -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="@dimen/pad"
+                android:gravity="center_vertical|end"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/mapCard"
+                    android:layout_width="@dimen/map_w"
+                    android:layout_height="@dimen/map_h">
+
+                    <FrameLayout
+                        android:id="@+id/mapContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <TextView
+                        android:id="@+id/mapLabel"
+                        style="@style/Label"
+                        android:layout_margin="10dp"
+                        android:tag="a2"
+                        android:text="@string/maps_google" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:id="@+id/navPanel"
+                    android:layout_width="@dimen/map_w"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/navIcon"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_turn"
+                        android:tag="a1" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/navTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="sans-serif-light"
+                            android:singleLine="true"
+                            android:tag="a1"
+                            android:textSize="24sp" />
+
+                        <TextView
+                            android:id="@+id/navText"
+                            style="@style/Label"
+                            android:ellipsize="end"
+                            android:letterSpacing="0.1"
+                            android:singleLine="true"
+                            android:tag="a2" />
+
+                        <TextView
+                            android:id="@+id/navSub"
+                            style="@style/Label"
+                            android:letterSpacing="0.1"
+                            android:singleLine="true"
+                            android:tag="a2" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/mapHint"
+                    style="@style/Label"
+                    android:layout_marginTop="12dp"
+                    android:letterSpacing="0.1"
+                    android:tag="a2"
+                    android:text="@string/maps_hint" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="@dimen/pad"
+            android:layout_marginEnd="@dimen/pad"
+            android:tag="a3" />
+
+        <!-- Música en una línea -->
+        <LinearLayout
+            android:id="@+id/mediaCard"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:background="@drawable/chip_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/pad"
+            android:paddingEnd="8dp">
+
+            <ImageView
+                android:id="@+id/artIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_music"
+                android:tag="a1" />
+
+            <TextView
+                android:id="@+id/trackTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:ellipsize="end"
+                android:maxWidth="230dp"
+                android:singleLine="true"
+                android:tag="a1"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/trackArtist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:ellipsize="end"
+                android:maxWidth="160dp"
+                android:singleLine="true"
+                android:tag="a2"
+                android:textSize="12sp" />
+
+            <com.juandiego.priuslauncher.ProgressLine
+                android:id="@+id/progress"
+                android:layout_width="0dp"
+                android:layout_height="2dp"
+                android:layout_marginStart="18dp"
+                android:layout_marginEnd="18dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/btnPrev"
+                android:layout_width="44dp"
+                android:layout_height="40dp"
+                android:background="@drawable/chip_bg"
+                android:contentDescription="@string/prev"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_prev"
+                android:tag="a1" />
+
+            <ImageButton
+                android:id="@+id/btnPlay"
+                android:layout_width="44dp"
+                android:layout_height="40dp"
+                android:background="@drawable/chip_bg"
+                android:contentDescription="@string/play_pause"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_play"
+                android:tag="a1" />
+
+            <ImageButton
+                android:id="@+id/btnNext"
+                android:layout_width="44dp"
+                android:layout_height="40dp"
+                android:background="@drawable/chip_bg"
+                android:contentDescription="@string/next"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_next"
+                android:tag="a1" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:tag="a3" />
+
+        <LinearLayout
+            android:id="@+id/dockBar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dock_h"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingEnd="14dp" />
+    </LinearLayout>
+</FrameLayout>

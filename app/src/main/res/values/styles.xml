@@ -8,26 +8,20 @@
         <item name="android:windowShowWallpaper">false</item>
     </style>
 
-    <style name="SectionLabel">
+    <style name="Label">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:letterSpacing">0.22</item>
-        <item name="android:textColor">@color/text_dim</item>
+        <item name="android:letterSpacing">0.25</item>
         <item name="android:textSize">11sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="ChoiceButton">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_height">48dp</item>
-        <item name="android:background">@drawable/tile_bg</item>
-        <item name="android:clickable">true</item>
-        <item name="android:focusable">true</item>
-        <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/text_main</item>
-        <item name="android:textSize">15sp</item>
-        <item name="android:textStyle">bold</item>
+    <style name="IconBtn">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:background">@drawable/float_card</item>
+        <item name="android:padding">9dp</item>
+        <item name="android:scaleType">fitCenter</item>
     </style>
 </resources>

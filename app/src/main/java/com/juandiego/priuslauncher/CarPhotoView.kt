@@ -29,6 +29,20 @@ import kotlin.math.sin
 class CarPhotoView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
 
     var accent: Int = Color.RED
+        set(v) {
+            field = v
+            pipePaint.colorFilter = android.graphics.PorterDuffColorFilter(v, PorterDuff.Mode.MULTIPLY)
+            invalidate()
+        }
+
+    /** Capa de la tubería (gris + transparencia) que se pinta con el color del tema. */
+    var pipes: Bitmap? = null
+        set(v) {
+            field = v
+            invalidate()
+        }
+    private val pipePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val pipeDst = RectF()
     /** Velocidad del GPS en metros por segundo. */
     var speedMps: Float = 0f
     var animationEnabled: Boolean = true
@@ -151,6 +165,11 @@ class CarPhotoView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? 
         val bob = if (moving) sin(t * 2f * PI.toFloat() * (1.6f + speedFactor)) * 0.9f * d * min(1f, mph / 15f) else 0f
 
         canvas.drawBitmap(img, 0f, bob, null)
+        val pb = pipes
+        if (pb != null && showHeadlights) {
+            pipeDst.set(dst.left, dst.top + bob, dst.right, dst.bottom + bob)
+            canvas.drawBitmap(pb, null, pipeDst, pipePaint)
+        }
         if (animate) drawUnderglow(canvas, t, moving, speedFactor, bob)
         if (moving) {
             roadOffset += dt * 260f * d * speedFactor
@@ -181,26 +200,29 @@ class CarPhotoView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? 
         glowPaint.shader = null
     }
 
-    /** Líneas de carretera que pasan bajo el carro. */
+    /** Rayas de velocidad a los lados del carro. */
     private fun drawRoad(canvas: Canvas) {
         val base = if (isDay) 0x00000000 else 0x00FFFFFF
-        val rows = arrayOf(floatArrayOf(floorY + 0.02f, 0.8f, 2f), floatArrayOf(floorY + 0.07f, 1.25f, 3f))
-        for (row in rows) {
-            val y = dst.top + dst.height() * row[0]
-            val dash = 26f * d * row[1]
-            val gap = 34f * d * row[1]
-            val period = dash + gap
-            dashPaint.strokeWidth = row[2] * d
-            var x = dst.left - period + (roadOffset * row[1]) % period
-            while (x < dst.right) {
-                val mid = x + dash / 2f
-                val edge = 1f - (abs(mid - dst.centerX()) / (dst.width() / 2f)).coerceIn(0f, 1f)
-                val a = (edge * edge * (if (isDay) 70 else 110)).toInt()
-                if (a > 2) {
-                    dashPaint.color = base or (a shl 24)
-                    canvas.drawLine(x, y, x + dash, y, dashPaint)
+        val rows = floatArrayOf(0.42f, 0.52f, 0.62f, 0.72f)
+        dashPaint.strokeWidth = 2.2f * d
+        for ((k, fy) in rows.withIndex()) {
+            for (side in 0..1) {
+                val x0 = if (side == 0) dst.left else dst.right - dst.width() * 0.16f
+                val x1 = if (side == 0) dst.left + dst.width() * 0.16f else dst.right
+                val len = 20f * d
+                val period = 46f * d
+                var x = x0 - period + ((roadOffset * (1f + k * 0.15f)) % period)
+                while (x < x1) {
+                    val mid = x + len / 2f
+                    val e = 1f - (abs(mid - (x0 + x1) / 2f) / ((x1 - x0) / 2f)).coerceIn(0f, 1f)
+                    val a = (e * (if (isDay) 90 else 150)).toInt()
+                    if (a > 2) {
+                        dashPaint.color = base or (a shl 24)
+                        val y = dst.top + dst.height() * fy
+                        canvas.drawLine(x, y, x + len, y - len * 0.18f, dashPaint)
+                    }
+                    x += period
                 }
-                x += period
             }
         }
     }

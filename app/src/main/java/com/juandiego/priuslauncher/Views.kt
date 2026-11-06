@@ -84,7 +84,8 @@ class SegmentBar @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = 
 
 /** Línea de progreso fina con puntas redondas. */
 class ProgressLine @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
-    private val trackColor = ctx.getColor(R.color.track)
+    var trackColor = ctx.getColor(R.color.track)
+        set(v) { field = v; invalidate() }
     var color: Int = Color.RED
         set(v) { field = v; invalidate() }
     var level: Float = 0f
@@ -218,5 +219,62 @@ class HueBar @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null
             }
         }
         return super.onTouchEvent(event)
+    }
+}
+
+
+/** El carro de Sport: dibujo de líneas pintado con el color del tema, con un brillo que respira. */
+class SportCarView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
+    private val bmp: Bitmap? = try {
+        android.graphics.BitmapFactory.decodeResource(resources, R.drawable.sport_car,
+            android.graphics.BitmapFactory.Options().apply { inScaled = false })
+    } catch (e: OutOfMemoryError) {
+        null
+    }
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val dst = RectF()
+    private var start = android.os.SystemClock.uptimeMillis()
+    var animate = true
+    var accent: Int = Color.RED
+        set(v) {
+            field = v
+            paint.colorFilter = android.graphics.PorterDuffColorFilter(v, PorterDuff.Mode.SRC_IN)
+            invalidate()
+        }
+
+    override fun onDraw(canvas: Canvas) {
+        val b = bmp ?: return
+        val sc = min(width.toFloat() / b.width, height.toFloat() / b.height)
+        val w = b.width * sc
+        val h = b.height * sc
+        dst.set((width - w) / 2f, (height - h) / 2f, (width + w) / 2f, (height + h) / 2f)
+        val t = (android.os.SystemClock.uptimeMillis() - start) / 1000f
+        paint.alpha = if (animate) (230 + 25 * kotlin.math.sin(t * 2f * Math.PI.toFloat() / 3f)).toInt() else 255
+        canvas.drawBitmap(b, null, dst, paint)
+        if (animate && isShown) postInvalidateDelayed(50)
+    }
+}
+
+/** Regla fina de velocidad: se encienden las marcas según la velocidad. */
+class TickRuler @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
+    var color: Int = Color.RED
+        set(v) { field = v; invalidate() }
+    var dim: Int = Color.DKGRAY
+        set(v) { field = v; invalidate() }
+    var level: Float = 0f
+        set(v) { field = v.coerceIn(0f, 1f); invalidate() }
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    override fun onDraw(canvas: Canvas) {
+        val n = 40
+        val step = width / n.toFloat()
+        paint.strokeWidth = 2f * resources.displayMetrics.density
+        val lit = (level * n).roundToInt()
+        for (i in 0 until n) {
+            val x = i * step + step / 2f
+            val long = i % 5 == 0
+            paint.color = if (i < lit) color else dim
+            canvas.drawLine(x, if (long) 0f else height * 0.3f, x, height.toFloat(), paint)
+        }
     }
 }
