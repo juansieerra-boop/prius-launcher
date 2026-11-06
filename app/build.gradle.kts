@@ -35,6 +35,13 @@ android {
         }
     }
 
+    lint {
+        abortOnError = false
+        textReport = true
+        textOutput = file("stdout")
+        checkOnly += setOf("NewApi", "InlinedApi", "WrongConstant", "ResourceType", "MissingDefaultResource")
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

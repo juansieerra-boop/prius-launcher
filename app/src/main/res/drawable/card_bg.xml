@@ -5,7 +5,7 @@
         <shape android:shape="rectangle">
             <corners android:radius="18dp" />
             <gradient
-                android:angle="300"
+                android:angle="315"
                 android:endColor="@color/card_bottom"
                 android:startColor="@color/card_top" />
         </shape>
