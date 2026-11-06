@@ -79,6 +79,8 @@ class MainActivity : Activity() {
     private lateinit var durText: TextView
     private lateinit var btnPlay: ImageButton
 
+    private var ready = false
+    private var failed = false
     private var accent = 0
     private var loadedPhoto: String? = "none"
     private val handler = Handler(Looper.getMainLooper())
@@ -151,6 +153,27 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val trace = CrashReport.take(this)
+        if (trace != null) {
+            CrashReport.show(this, trace)
+            return
+        }
+        guarded { setupScreen() }
+    }
+
+    /** Si algo falla, muestra el error en pantalla en lugar de cerrar la app. */
+    private inline fun guarded(block: () -> Unit) {
+        if (failed) return
+        try {
+            block()
+        } catch (e: Throwable) {
+            failed = true
+            ready = false
+            CrashReport.show(this, CrashReport.format(e))
+        }
+    }
+
+    private fun setupScreen() {
         setContentView(R.layout.activity_main)
         hideSystemUi()
         dockPrefs = getSharedPreferences(DockSlots.PREFS, MODE_PRIVATE)
@@ -183,10 +206,15 @@ class MainActivity : Activity() {
 
         reloadCarPhotoIfNeeded()
         animateCarIn()
+        ready = true
     }
 
     override fun onStart() {
         super.onStart()
+        if (ready) guarded { startEverything() }
+    }
+
+    private fun startEverything() {
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_TIME_TICK)
             addAction(Intent.ACTION_TIME_CHANGED)
@@ -201,6 +229,10 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        if (ready) guarded { resumeEverything() }
+    }
+
+    private fun resumeEverything() {
         hideSystemUi()
         applyAccent()
         buildTiles()
@@ -212,6 +244,7 @@ class MainActivity : Activity() {
 
     override fun onStop() {
         super.onStop()
+        if (!ready) return
         try {
             unregisterReceiver(timeReceiver)
         } catch (e: IllegalArgumentException) {
@@ -224,7 +257,7 @@ class MainActivity : Activity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) hideSystemUi()
+        if (hasFocus && ready) hideSystemUi()
     }
 
     @Deprecated("Deprecated in Java")
@@ -234,14 +267,14 @@ class MainActivity : Activity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQ_LOC) startGps()
+        if (requestCode == REQ_LOC && ready) guarded { startGps() }
     }
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == CarPhoto.REQ_PICK && resultCode == RESULT_OK && CarPhoto.handleResult(this, data)) {
+        if (ready && requestCode == CarPhoto.REQ_PICK && resultCode == RESULT_OK && CarPhoto.handleResult(this, data)) {
             reloadCarPhotoIfNeeded()
             animateCarIn()
             Toast.makeText(this, R.string.photo_changed, Toast.LENGTH_SHORT).show()
