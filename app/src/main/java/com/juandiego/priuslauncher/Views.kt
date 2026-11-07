@@ -223,36 +223,30 @@ class HueBar @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null
 }
 
 
-/** El carro de Sport: dibujo de líneas pintado con el color del tema, con un brillo que respira. */
-class SportCarView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
-    private val bmp: Bitmap? = try {
-        android.graphics.BitmapFactory.decodeResource(resources, R.drawable.sport_car,
-            android.graphics.BitmapFactory.Options().apply { inScaled = false })
-    } catch (e: OutOfMemoryError) {
-        null
+/** Marco de esquinas para Sport (solo las cuatro esquinas, como un visor). */
+class BracketDrawable(private val color: Int, private val density: Float) : android.graphics.drawable.Drawable() {
+    private val p = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1.5f * density
+        this.color = this@BracketDrawable.color
     }
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-    private val dst = RectF()
-    private var start = android.os.SystemClock.uptimeMillis()
-    var animate = true
-    var accent: Int = Color.RED
-        set(v) {
-            field = v
-            paint.colorFilter = android.graphics.PorterDuffColorFilter(v, PorterDuff.Mode.SRC_IN)
-            invalidate()
-        }
-
-    override fun onDraw(canvas: Canvas) {
-        val b = bmp ?: return
-        val sc = min(width.toFloat() / b.width, height.toFloat() / b.height)
-        val w = b.width * sc
-        val h = b.height * sc
-        dst.set((width - w) / 2f, (height - h) / 2f, (width + w) / 2f, (height + h) / 2f)
-        val t = (android.os.SystemClock.uptimeMillis() - start) / 1000f
-        paint.alpha = if (animate) (230 + 25 * kotlin.math.sin(t * 2f * Math.PI.toFloat() / 3f)).toInt() else 255
-        canvas.drawBitmap(b, null, dst, paint)
-        if (animate && isShown) postInvalidateDelayed(50)
+    private val path = android.graphics.Path()
+    override fun draw(canvas: Canvas) {
+        val r = bounds
+        val l = 14f * density
+        val i = p.strokeWidth / 2f
+        val x0 = r.left + i; val y0 = r.top + i; val x1 = r.right - i; val y1 = r.bottom - i
+        path.reset()
+        path.moveTo(x0, y0 + l); path.lineTo(x0, y0); path.lineTo(x0 + l, y0)
+        path.moveTo(x1 - l, y0); path.lineTo(x1, y0); path.lineTo(x1, y0 + l)
+        path.moveTo(x0, y1 - l); path.lineTo(x0, y1); path.lineTo(x0 + l, y1)
+        path.moveTo(x1 - l, y1); path.lineTo(x1, y1); path.lineTo(x1, y1 - l)
+        canvas.drawPath(path, p)
     }
+    override fun setAlpha(alpha: Int) { p.alpha = alpha }
+    override fun setColorFilter(cf: android.graphics.ColorFilter?) { p.colorFilter = cf }
+    @Deprecated("Deprecated in Java")
+    override fun getOpacity() = android.graphics.PixelFormat.TRANSLUCENT
 }
 
 /** Regla fina de velocidad: se encienden las marcas según la velocidad. */

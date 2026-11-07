@@ -56,6 +56,11 @@ object Prefs {
         p(c).getString("dock_apps", null)?.split("|")?.filter { it.isNotBlank() }?.toMutableList()
     fun setDockApps(c: Context, list: List<String>) = p(c).edit().putString("dock_apps", list.joinToString("|")).apply()
 
+    /** Vista del carro en Art: "normal" o "anatomy" (Sport siempre usa la normal). */
+    fun carView(c: Context): String = p(c).getString("car_view", "normal") ?: "normal"
+    fun setCarView(c: Context, v: String) = p(c).edit().putString("car_view", v).apply()
+    fun anatomy(c: Context) = carView(c) == "anatomy" && !isSport(c)
+
     fun prefs(c: Context): android.content.SharedPreferences = p(c)
 
     /** Sport siempre es oscuro. */
@@ -121,15 +126,20 @@ object CarPhoto {
         }
     }
 
-    /** La foto guardada o, si no hay (o ya no se puede leer), mi_carro.png. */
-    fun load(c: Context, maxWidth: Int): Bitmap {
-        val uri = Prefs.carUri(c)
-        if (uri != null) {
-            val b = decodeUri(c, uri, maxWidth)
-            if (b != null) return b
-        }
-        val default = if (Prefs.lightTheme(c)) R.drawable.art_dia else R.drawable.art_noche
-        return BitmapFactory.decodeResource(c.resources, default, BitmapFactory.Options().apply { inScaled = false })
+    /** La foto que elegiste para este modo, o null si usas el dibujo del carro. */
+    fun loadCustom(c: Context, maxWidth: Int): Bitmap? {
+        val uri = Prefs.carUri(c) ?: return null
+        return decodeUri(c, uri, maxWidth)
+    }
+
+    /** Carga un dibujo del carro tal cual (sin escalar por densidad). */
+    fun loadRes(c: Context, res: Int): Bitmap? = try {
+        BitmapFactory.decodeResource(c.resources, res, BitmapFactory.Options().apply {
+            inScaled = false
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        })
+    } catch (e: OutOfMemoryError) {
+        null
     }
 
     private fun decodeUri(c: Context, uri: Uri, maxWidth: Int): Bitmap? {

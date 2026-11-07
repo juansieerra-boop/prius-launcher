@@ -16,6 +16,7 @@ object DockSlots {
 
     const val PREFS = "dock"
     const val MAPS = 3
+    const val MUSIC = 5
     const val PHONE = 6
 
     /** Los primeros 6 son la cuadrícula; el 7 es "Conectar teléfono". */
@@ -46,11 +47,11 @@ object DockSlots {
         ),
         Slot(
             R.string.slot_ytmusic, R.drawable.ic_music,
-            listOf("com.google.android.apps.youtube.music", "com.spotify.music")
+            listOf("com.spotify.music", "com.google.android.apps.youtube.music")
         ),
         Slot(
             R.string.connect_phone, R.drawable.ic_smartphone,
-            emptyList()
+            listOf("com.syu.bt", "com.microntek.bluetooth", "com.ts.bt", "com.fyt.bt", "com.google.android.dialer", "com.android.dialer")
         )
     )
 

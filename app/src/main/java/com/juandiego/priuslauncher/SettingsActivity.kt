@@ -144,6 +144,14 @@ class SettingsActivity : Activity() {
             addView(hue, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, px(40f)))
         }
 
+        card(c1, R.string.view_section).apply {
+            val anat = Prefs.carView(this@SettingsActivity) == "anatomy"
+            addView(choices(R.string.view_normal to !anat, R.string.view_anatomy to anat) { i ->
+                Prefs.setCarView(this@SettingsActivity, if (i == 0) "normal" else "anatomy"); build()
+            })
+            addView(text(R.string.view_note, 11f, soft()), lpTop(8f))
+        }
+
         // Columna 2: modo, velocidad, idioma, animación
         card(c2, R.string.theme_section).apply {
             val light = Prefs.lightSetting(this@SettingsActivity)

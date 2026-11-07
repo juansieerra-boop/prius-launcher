@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Versión para el Jeep: solo cambia el nombre, los textos del carro y dónde están sus faros -->
+<!-- Versión para el Jeep: cambia el nombre, los textos del carro y dónde están sus llantas y faros -->
 <resources>
     <string name="app_name">Jeep Launcher</string>
     <string name="brand_title">JEEP WRANGLER</string>
     <string name="brand_sub">SAHARA · LIMITED EDITION</string>
-    <string name="headlights" translatable="false">0.111,0.426,0.273,0.446,0.079,0.634,0.167,0.638</string>
-    <string name="floor_y" translatable="false">0.93</string>
+    <string name="brand_short" translatable="false">CARO</string>
+    <string name="car_wheels" translatable="false">0.4321,0.8181,0.0529,0.1423,0.9057,0.7045,0.0371,0.1204</string>
+    <string name="car_lamps" translatable="false">0.1000,0.4405,0.0214,0.0520,0.2679,0.4555,0.0200,0.0520,0.0764,0.6525,0.0100,0.0274,0.1586,0.6662,0.0100,0.0274</string>
+    <string name="anat_wheels" translatable="false">0.4321,0.8181,0.0529,0.1423,0.9057,0.7045,0.0371,0.1204</string>
+    <string name="anat_lamps" translatable="false">0.1000,0.4405,0.0214,0.0520,0.2679,0.4555,0.0200,0.0520,0.0764,0.6525,0.0100,0.0274,0.1586,0.6662,0.0100,0.0274</string>
 </resources>

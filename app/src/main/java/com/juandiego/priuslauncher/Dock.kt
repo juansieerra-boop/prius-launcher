@@ -11,6 +11,7 @@ import android.content.IntentFilter
 import android.content.res.ColorStateList
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.wifi.WifiManager
 import android.provider.Settings
@@ -20,22 +21,32 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Space
-import android.widget.TextClock
 import android.widget.TextView
 import android.widget.Toast
 
 /**
- * Barra de abajo: atrás / inicio / multitarea / todas las apps,
- * tus accesos directos (con + para agregar), Wi-Fi, Bluetooth y la hora.
+ * Barra de abajo: Apps, Mapas, Música, Teléfono, tus apps (con + para agregar), Ajustes y el nombre del carro.
+ * En Art cada botón lleva su nombre; en Sport solo los íconos, del color del tema.
+ * También maneja los botones de Wi-Fi y Bluetooth de arriba.
  */
-class Dock(private val act: Activity, private val bar: LinearLayout, private val sport: Boolean, private val showClock: Boolean = !sport) {
+class Dock(
+    private val act: Activity,
+    private val bar: LinearLayout,
+    private val sport: Boolean,
+    private val wifiBtn: ImageButton?,
+    private val btBtn: ImageButton?,
+    private val actions: Actions
+) {
+    interface Actions {
+        fun openMaps()
+        fun openMusic()
+        fun openPhone()
+        fun pickSlot(slot: Int)
+    }
 
     companion object {
-        const val MAX_APPS = 8
-        private val DEFAULTS = listOf(
-            "com.spotify.music", "com.google.android.apps.maps", "com.waze",
-            "com.google.android.youtube", "com.google.android.apps.youtube.music", "com.whatsapp"
-        )
+        const val MAX_APPS = 6
+        private val DEFAULTS = listOf("com.spotify.music", "com.waze", "com.google.android.youtube", "com.whatsapp")
 
         /** Lista de apps de la barra (la primera vez se llena con las apps conocidas instaladas). */
         fun apps(c: Context): MutableList<String> {
@@ -59,46 +70,75 @@ class Dock(private val act: Activity, private val bar: LinearLayout, private val
 
     private val d = act.resources.displayMetrics.density
     private var accent = Prefs.accent(act)
-    private var wifiBtn: ImageButton? = null
-    private var btBtn: ImageButton? = null
-    private val tinted = mutableListOf<ImageView>()
-    private val tintedText = mutableListOf<TextView>()
+    private val icons = mutableListOf<ImageView>()
+    private val labels = mutableListOf<TextView>()
+    private var brand: TextView? = null
     private var started = false
 
     private val stateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) = refreshToggles()
     }
 
+    init {
+        wifiBtn?.setOnClickListener { toggleWifi() }
+        wifiBtn?.setOnLongClickListener { open(Settings.ACTION_WIFI_SETTINGS); true }
+        btBtn?.setOnClickListener { toggleBt() }
+        btBtn?.setOnLongClickListener { open(Settings.ACTION_BLUETOOTH_SETTINGS); true }
+    }
+
     private fun px(v: Float) = (v * d).toInt()
 
-    private fun iconColor() = if (sport) scaleColor(accent, 0.65f) else act.getColor(R.color.icon_tint)
+    private fun mainColor() = if (sport) accent else act.getColor(R.color.text_main)
+    private fun softColor() = if (sport) scaleColor(accent, 0.62f) else act.getColor(R.color.text_muted)
 
     fun build() {
         bar.removeAllViews()
-        tinted.clear()
-        tintedText.clear()
-        val btn = act.resources.getDimensionPixelSize(R.dimen.dock_btn)
-        // Navegación
-        fun nav(icon: Int, desc: Int, click: () -> Unit) {
-            val b = ImageButton(act)
-            b.setImageResource(icon)
-            b.setBackgroundResource(R.drawable.chip_bg)
-            b.scaleType = ImageView.ScaleType.FIT_CENTER
-            b.setPadding(px(10f), px(10f), px(10f), px(10f))
-            b.contentDescription = act.getString(desc)
-            b.setOnClickListener { click() }
-            bar.addView(b, LinearLayout.LayoutParams(btn, btn))
-            tinted.add(b)
+        icons.clear()
+        labels.clear()
+        bar.setBackgroundColor(if (sport) android.graphics.Color.BLACK else act.getColor(R.color.dock_bg))
+        val iconSize = act.resources.getDimensionPixelSize(R.dimen.d_icon)
+
+        fun item(iconView: View, label: CharSequence?, tint: Boolean, click: () -> Unit, long: (() -> Unit)? = null) {
+            val box = LinearLayout(act)
+            box.orientation = LinearLayout.VERTICAL
+            box.gravity = Gravity.CENTER
+            box.setBackgroundResource(R.drawable.chip_bg)
+            box.isClickable = true
+            box.setOnClickListener { click() }
+            if (long != null) box.setOnLongClickListener { long(); true }
+            box.contentDescription = label
+            box.addView(iconView, LinearLayout.LayoutParams(iconSize, iconSize))
+            if (iconView is ImageView && tint) icons.add(iconView)
+            if (!sport && label != null) {
+                val t = TextView(act)
+                t.text = label
+                t.textSize = 12f
+                t.maxLines = 1
+                t.ellipsize = android.text.TextUtils.TruncateAt.END
+                t.gravity = Gravity.CENTER
+                box.addView(t, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = px(5f) })
+                labels.add(t)
+            }
+            val w = if (sport) px(58f) else px(76f)
+            bar.addView(box, LinearLayout.LayoutParams(w, LinearLayout.LayoutParams.MATCH_PARENT).apply {
+                topMargin = px(6f); bottomMargin = px(6f)
+                if (sport) marginEnd = px(8f)
+            })
         }
-        nav(R.drawable.ic_back, R.string.prev) { NavService.instance?.back() ?: needService() }
-        nav(R.drawable.ic_home, R.string.all_apps) { NavService.instance?.home() }
-        nav(R.drawable.ic_recents, R.string.all_apps) { NavService.instance?.recents() ?: needService() }
-        nav(R.drawable.ic_menu, R.string.all_apps) { act.startActivity(Intent(act, AppsActivity::class.java)) }
 
-        bar.addView(Space(act), LinearLayout.LayoutParams(0, 1, 1f))
+        fun vec(res: Int): ImageView = ImageView(act).apply {
+            setImageResource(res)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
 
-        // Accesos directos
-        val icon = act.resources.getDimensionPixelSize(R.dimen.dock_icon)
+        item(vec(R.drawable.ic_d_apps), act.getString(R.string.d_apps), true, {
+            act.startActivity(Intent(act, AppsActivity::class.java))
+        })
+        item(vec(R.drawable.ic_d_maps), act.getString(R.string.d_maps), true, { actions.openMaps() }, { actions.pickSlot(DockSlots.MAPS) })
+        item(vec(R.drawable.ic_d_music), act.getString(R.string.d_music), true, { actions.openMusic() }, { actions.pickSlot(DockSlots.MUSIC) })
+        item(vec(R.drawable.ic_d_phone), act.getString(R.string.d_phone), true, { actions.openPhone() }, { actions.pickSlot(DockSlots.PHONE) })
+
+        // Tus apps
         val list = apps(act)
         val pm = act.packageManager
         for ((i, s) in list.withIndex()) {
@@ -106,86 +146,48 @@ class Dock(private val act: Activity, private val bar: LinearLayout, private val
             val dr = try { pm.getActivityIcon(cn) } catch (e: Exception) { null } ?: continue
             val iv = ImageView(act)
             iv.setImageDrawable(dr.mutate())
+            iv.scaleType = ImageView.ScaleType.FIT_CENTER
             if (sport) iv.colorFilter = monoFilter(accent)
-            iv.setBackgroundResource(R.drawable.chip_bg)
-            iv.setPadding(px(5f), px(5f), px(5f), px(5f))
-            iv.contentDescription = try { pm.getActivityInfo(cn, 0).loadLabel(pm) } catch (e: Exception) { s }
-            iv.setOnClickListener { launch(cn) }
-            iv.setOnLongClickListener { edit(i); true }
-            val lp = LinearLayout.LayoutParams(icon + px(10f), icon + px(10f))
-            lp.marginStart = px(4f)
-            lp.marginEnd = px(4f)
-            bar.addView(iv, lp)
+            val name = try { pm.getActivityInfo(cn, 0).loadLabel(pm) } catch (e: Exception) { s }
+            item(iv, name, false, { launch(cn) }, { edit(i) })
         }
         if (list.size < MAX_APPS) {
-            val plus = ImageButton(act)
+            val plus = ImageView(act)
             plus.setImageResource(R.drawable.ic_plus)
+            plus.setPadding(px(5f), px(5f), px(5f), px(5f))
             plus.background = GradientDrawable().apply {
-                cornerRadius = 10 * d
-                setStroke(px(1.5f), iconColor(), 6 * d, 4 * d)
+                cornerRadius = 7 * d
+                setStroke(px(1.3f), softColor(), 4 * d, 3 * d)
             }
-            plus.scaleType = ImageView.ScaleType.FIT_CENTER
-            plus.setPadding(px(9f), px(9f), px(9f), px(9f))
-            plus.contentDescription = act.getString(R.string.dock_add)
-            plus.setOnClickListener {
+            item(plus, if (sport) null else " ", true, {
                 act.startActivity(Intent(act, AppsActivity::class.java).putExtra(AppsActivity.EXTRA_ADD_DOCK, true))
-            }
-            val lp = LinearLayout.LayoutParams(icon, icon)
-            lp.marginStart = px(6f)
-            bar.addView(plus, lp)
-            tinted.add(plus)
+            })
         }
 
         bar.addView(Space(act), LinearLayout.LayoutParams(0, 1, 1f))
+        item(vec(R.drawable.ic_d_gear), act.getString(R.string.d_settings), true, {
+            act.startActivity(Intent(act, SettingsActivity::class.java))
+        })
 
-        // Wi-Fi y Bluetooth
-        fun toggle(iconRes: Int, desc: Int, click: () -> Unit, long: () -> Unit): ImageButton {
-            val b = ImageButton(act)
-            b.setImageResource(iconRes)
-            b.scaleType = ImageView.ScaleType.FIT_CENTER
-            b.setPadding(px(9f), px(9f), px(9f), px(9f))
-            b.contentDescription = act.getString(desc)
-            b.setOnClickListener { click() }
-            b.setOnLongClickListener { long(); true }
-            val lp = LinearLayout.LayoutParams(btn + px(4f), btn - px(4f))
-            lp.marginStart = px(6f)
-            bar.addView(b, lp)
-            return b
-        }
-        wifiBtn = toggle(R.drawable.ic_wifi, R.string.wifi, { toggleWifi() }, { open(Settings.ACTION_WIFI_SETTINGS) })
-        btBtn = toggle(R.drawable.ic_bt, R.string.bluetooth, { toggleBt() }, { open(Settings.ACTION_BLUETOOTH_SETTINGS) })
-
-        // Hora (en Sport ya está arriba)
-        if (showClock) {
-            val box = LinearLayout(act)
-            box.orientation = LinearLayout.HORIZONTAL
-            box.gravity = Gravity.CENTER_VERTICAL
-            val clock = TextClock(act)
-            clock.format12Hour = "h:mm"
-            clock.format24Hour = "H:mm"
-            clock.textSize = 20f
-            clock.setTextColor(act.getColor(R.color.text_main))
-            box.addView(clock)
-            val date = TextClock(act)
-            date.format12Hour = "EEE d MMM"
-            date.format24Hour = "EEE d MMM"
-            date.textSize = 13f
-            date.setTextColor(act.getColor(R.color.text_muted))
-            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            lp.marginStart = px(10f)
-            box.addView(date, lp)
-            val blp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            blp.marginStart = px(16f)
-            bar.addView(box, blp)
+        brand = null
+        if (!sport) {
+            val b = TextView(act)
+            b.text = act.getString(R.string.brand_short)
+            b.textSize = 24f
+            b.letterSpacing = 0.14f
+            b.typeface = Typeface.create("sans-serif-thin", Typeface.NORMAL)
+            bar.addView(b, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { marginStart = px(18f) })
+            brand = b
         }
         applyColors(accent)
     }
 
     fun applyColors(color: Int) {
         accent = color
-        val ic = ColorStateList.valueOf(iconColor())
-        for (v in tinted) v.imageTintList = ic
-        if (sport) bar.setBackgroundColor(android.graphics.Color.BLACK)
+        val ic = ColorStateList.valueOf(if (sport) accent else act.getColor(R.color.icon_tint))
+        for (v in icons) v.imageTintList = ic
+        for (t in labels) t.setTextColor(act.getColor(R.color.text_main))
+        brand?.setTextColor(act.getColor(R.color.text_main))
         refreshToggles()
     }
 
@@ -220,20 +222,11 @@ class Dock(private val act: Activity, private val bar: LinearLayout, private val
         style(btBtn, btOn())
     }
 
+    /** Encendido = color del tema; apagado = tenue. */
     private fun style(b: ImageButton?, on: Boolean) {
         b ?: return
-        b.background = GradientDrawable().apply {
-            cornerRadius = 12 * d
-            if (on) setColor(if (sport) scaleColor(accent, 0.22f) else accent)
-            else setColor(0x00000000)
-            if (sport) setStroke(px(1f), scaleColor(accent, if (on) 0.9f else 0.3f))
-        }
-        val tint = when {
-            sport -> if (on) accent else scaleColor(accent, 0.45f)
-            on -> android.graphics.Color.WHITE
-            else -> act.getColor(R.color.text_muted)
-        }
-        b.imageTintList = ColorStateList.valueOf(tint)
+        val off = if (sport) scaleColor(accent, 0.35f) else act.getColor(R.color.text_muted) and 0x00FFFFFF or 0x66000000
+        b.imageTintList = ColorStateList.valueOf(if (on) accent else off)
     }
 
     @Suppress("DEPRECATION")
@@ -283,10 +276,6 @@ class Dock(private val act: Activity, private val bar: LinearLayout, private val
             Prefs.setDockApps(act, list)
             build()
         }.show()
-    }
-
-    private fun needService() {
-        Toast.makeText(act, R.string.need_nav_service, Toast.LENGTH_LONG).show()
     }
 }
 

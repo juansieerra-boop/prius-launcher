@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Colores de noche (los de día están en values-notnight) -->
 <resources>
-    <color name="bg_dark">#FF000000</color>
+    <color name="bg_dark">#FF121821</color>
     <color name="screen_glow">#FF0B0C0E</color>
     <color name="card_top">#FF202328</color>
     <color name="card_bottom">#FF121418</color>
-    <color name="tile_top">#FF1E2125</color>
-    <color name="tile_bottom">#FF15171A</color>
-    <color name="tile_pressed">#FF2E3238</color>
+    <color name="tile_top">#FF1B2430</color>
+    <color name="tile_bottom">#FF16202B</color>
+    <color name="tile_pressed">#FF26334A</color>
     <color name="dark_tile">#FF111316</color>
-    <color name="float_card">#EB16171A</color>
-    <color name="dock_bg">#FF0E0F11</color>
-    <color name="stroke">#17FFFFFF</color>
-    <color name="track">#FF2A2D33</color>
+    <color name="float_card">#FF1B2430</color>
+    <color name="dock_bg">#FF151C26</color>
+    <color name="stroke">#14FFFFFF</color>
+    <color name="track">#FF2C3A4C</color>
     <color name="hero_stroke">#14FFFFFF</color>
     <color name="hero_track">#FF2A2D33</color>
-    <color name="map_bg">#FF15181C</color>
+    <color name="map_bg">#FF1A2533</color>
     <color name="map_road">#FF3A4048</color>
     <color name="map_attrib">#99FFFFFF</color>
 
-    <color name="text_main">#FFF2F3F5</color>
+    <color name="text_main">#FFE8EDF4</color>
     <color name="text_soft">#FFC9CED4</color>
-    <color name="text_muted">#FF8A8F98</color>
+    <color name="text_muted">#FF8E99A8</color>
     <color name="text_dim">#FF7C818A</color>
-    <color name="icon_tint">#FFDADDE2</color>
+    <color name="icon_tint">#FFC9D1DC</color>
     <color name="apps_overlay">#EB0B0D11</color>
     <color name="hero_text_main">#FFF1F3F5</color>
     <color name="hero_text_soft">#FFC9CED4</color>

@@ -101,4 +101,15 @@
     <string name="maps_status_fallback">Backup map (Google key missing)</string>
     <string name="nav_service_label">Launcher navigation bar</string>
     <string name="nav_service_desc">Shows back, home and recents buttons over your apps.</string>
+    <string name="d_apps">Apps</string>
+    <string name="d_maps">Maps</string>
+    <string name="d_music">Music</string>
+    <string name="d_phone">Phone</string>
+    <string name="d_settings">Settings</string>
+    <string name="card_playing">Now playing</string>
+    <string name="card_nav">Navigation</string>
+    <string name="view_section">CAR VIEW</string>
+    <string name="view_normal">Normal</string>
+    <string name="view_anatomy">Anatomy</string>
+    <string name="view_note">Sport always uses the Normal view. Lights turn on from 5 PM to 6 AM.</string>
 </resources>

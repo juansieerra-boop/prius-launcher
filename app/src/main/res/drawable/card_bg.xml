@@ -11,11 +11,6 @@
         </shape>
     </item>
     <item>
-        <bitmap
-            android:src="@drawable/carbon_tile"
-            android:tileMode="repeat" />
-    </item>
-    <item>
         <shape android:shape="rectangle">
             <corners android:radius="18dp" />
             <solid android:color="#00000000" />

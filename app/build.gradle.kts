@@ -11,8 +11,8 @@ android {
         applicationId = "com.juandiego.priuslauncher"
         minSdk = 24          // Android 7.0 en adelante
         targetSdk = 35
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 3
+        versionName = "3.0"
 
         // Clave de Google Maps: viene del "secret" MAPS_API_KEY de GitHub (o vacía = mapa de respaldo)
         val mapsKey = System.getenv("MAPS_API_KEY") ?: (project.findProperty("MAPS_API_KEY") as String?) ?: ""
@@ -51,8 +51,11 @@ android {
         debug {
             signingConfig = signingConfigs.getByName("fija")
         }
+        // Versión final: optimizada y comprimida (más ligera y rápida)
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("fija")
         }
     }

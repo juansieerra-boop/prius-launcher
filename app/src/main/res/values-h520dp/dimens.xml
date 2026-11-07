@@ -4,8 +4,8 @@
     <dimen name="dock_h">64dp</dimen>
     <dimen name="dock_icon">36dp</dimen>
     <dimen name="dock_btn">46dp</dimen>
-    <dimen name="speed_art">92sp</dimen>
-    <dimen name="speed_sport">124sp</dimen>
+    <dimen name="speed_art">30sp</dimen>
+    <dimen name="speed_sport">84sp</dimen>
     <dimen name="pad">22dp</dimen>
     <dimen name="card_w">330dp</dimen>
     <dimen name="art_size">72dp</dimen>
@@ -16,5 +16,12 @@
     <dimen name="speed_min">100sp</dimen>
     <dimen name="top_h">56dp</dimen>
     <dimen name="col_w">220dp</dimen>
-    <dimen name="thumb">62dp</dimen>
+    <dimen name="thumb">84dp</dimen>
+    <dimen name="right_w">322dp</dimen>
+    <dimen name="d_h">92dp</dimen>
+    <dimen name="clock">38sp</dimen>
+    <dimen name="car_top">96dp</dimen>
+    <dimen name="d_icon">28dp</dimen>
+    <dimen name="d_app">30dp</dimen>
+    <dimen name="gap">18dp</dimen>
 </resources>
