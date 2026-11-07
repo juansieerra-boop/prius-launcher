@@ -28,7 +28,7 @@ import android.widget.Toast
  * Barra de abajo: atrás / inicio / multitarea / todas las apps,
  * tus accesos directos (con + para agregar), Wi-Fi, Bluetooth y la hora.
  */
-class Dock(private val act: Activity, private val bar: LinearLayout, private val sport: Boolean) {
+class Dock(private val act: Activity, private val bar: LinearLayout, private val sport: Boolean, private val showClock: Boolean = !sport) {
 
     companion object {
         const val MAX_APPS = 8
@@ -156,7 +156,7 @@ class Dock(private val act: Activity, private val bar: LinearLayout, private val
         btBtn = toggle(R.drawable.ic_bt, R.string.bluetooth, { toggleBt() }, { open(Settings.ACTION_BLUETOOTH_SETTINGS) })
 
         // Hora (en Sport ya está arriba)
-        if (!sport) {
+        if (showClock) {
             val box = LinearLayout(act)
             box.orientation = LinearLayout.HORIZONTAL
             box.gravity = Gravity.CENTER_VERTICAL

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vistas opcionales: el diseño limpio no las tiene, el código las usa solo si existen -->
+<resources>
+    <item name="btnAndroid" type="id" />
+    <item name="btnNavigate" type="id" />
+    <item name="gpsDot" type="id" />
+    <item name="gpsPill" type="id" />
+    <item name="gpsText" type="id" />
+    <item name="mapHint" type="id" />
+    <item name="navSub" type="id" />
+    <item name="navText" type="id" />
+    <item name="statDistance" type="id" />
+    <item name="statDistanceUnit" type="id" />
+    <item name="statMax" type="id" />
+    <item name="statMaxUnit" type="id" />
+    <item name="statTime" type="id" />
+    <item name="tickRuler" type="id" />
+    <item name="weatherDesc" type="id" />
+</resources>

@@ -33,7 +33,8 @@ class MapPanel(
     private val sport: Boolean,
     private val day: Boolean,
     accent: Int,
-    private val onTap: () -> Unit
+    private val onTap: () -> Unit,
+    private val onLongTap: () -> Unit = {}
 ) {
     companion object {
         fun googleAvailable(act: Activity): Boolean =
@@ -77,6 +78,7 @@ class MapPanel(
         val lv = LiveMapView(act)
         lv.accent = accent
         lv.setOnClickListener { onTap() }
+        lv.setOnLongClickListener { onLongTap(); true }
         container.addView(lv, lp)
         live = lv
     }
@@ -91,6 +93,7 @@ class MapPanel(
         m.isBuildingsEnabled = !sport
         m.isTrafficEnabled = false
         m.setOnMapClickListener { onTap() }
+        m.setOnMapLongClickListener { onLongTap() }
         m.setOnMarkerClickListener { onTap(); true }
         applyGoogleStyle()
         lastPos?.let { moveTo(it, lastBearing, false) }

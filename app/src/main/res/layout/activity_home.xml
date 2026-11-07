@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pantalla de inicio limpia (Art y Sport). El carro ocupa casi toda la pantalla;
+     a la izquierda: velocidad, mapa chico y música. En Sport, los tags a1/a2/a3
+     se pintan con tu color (a1 = completo, a2 = tenue, a3 = líneas). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- El carro: grande, a la derecha de la columna -->
+            <FrameLayout
+                android:id="@+id/carArea"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="@dimen/col_w"
+                android:layout_marginTop="@dimen/top_h"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp">
+
+                <com.juandiego.priuslauncher.CarPhotoView
+                    android:id="@+id/carPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:longClickable="true" />
+
+                <com.juandiego.priuslauncher.SportCarView
+                    android:id="@+id/sportCar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </FrameLayout>
+
+            <!-- Arriba: nombre del carro, hora, clima y ajustes -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/top_h"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingEnd="10dp">
+
+                <TextView
+                    android:id="@+id/carName"
+                    style="@style/Label"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:letterSpacing="0.3"
+                    android:singleLine="true"
+                    android:tag="a2"
+                    android:textColor="@color/text_muted" />
+
+                <TextClock
+                    android:id="@+id/clockTop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-light"
+                    android:format12Hour="h:mm"
+                    android:format24Hour="H:mm"
+                    android:tag="a1"
+                    android:textColor="@color/text_main"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:id="@+id/weatherIcon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="16dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_sun"
+                    android:tag="a2"
+                    android:tint="@color/text_muted" />
+
+                <TextView
+                    android:id="@+id/weatherTemp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="sans-serif-light"
+                    android:tag="a2"
+                    android:text="--°"
+                    android:textColor="@color/text_muted"
+                    android:textSize="15sp" />
+
+                <ImageButton
+                    android:id="@+id/btnDayNight"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/chip_bg"
+                    android:contentDescription="@string/day_night"
+                    android:padding="9dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_sun"
+                    android:tint="@color/text_muted" />
+
+                <ImageButton
+                    android:id="@+id/btnSettings"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/chip_bg"
+                    android:contentDescription="@string/settings_title"
+                    android:padding="9dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_tune"
+                    android:tag="a2"
+                    android:tint="@color/text_muted" />
+            </LinearLayout>
+
+            <!-- Columna izquierda: velocidad, mapa y música -->
+            <LinearLayout
+                android:layout_width="@dimen/col_w"
+                android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/top_h"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingBottom="10dp">
+
+                <TextView
+                    android:id="@+id/speedValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-thin"
+                    android:includeFontPadding="false"
+                    android:tag="a1"
+                    android:text="0"
+                    android:textColor="@color/text_main"
+                    android:textSize="@dimen/speed_min" />
+
+                <TextView
+                    android:id="@+id/speedUnit"
+                    style="@style/Label"
+                    android:layout_marginTop="2dp"
+                    android:letterSpacing="0.4"
+                    android:tag="a2"
+                    android:textColor="@color/text_muted" />
+
+                <!-- Mapa chico en vivo -->
+                <FrameLayout
+                    android:id="@+id/mapCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_weight="1"
+                    android:background="@color/map_bg">
+
+                    <FrameLayout
+                        android:id="@+id/mapContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <TextView
+                        android:id="@+id/mapWaiting"
+                        style="@style/Label"
+                        android:layout_gravity="center"
+                        android:letterSpacing="0.1"
+                        android:tag="a2"
+                        android:text="@string/gps_searching"
+                        android:textColor="@color/text_muted" />
+
+                    <LinearLayout
+                        android:id="@+id/navPanel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/nav_bg"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="6dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:id="@+id/navIcon"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_turn"
+                            android:tint="#FFFFFFFF" />
+
+                        <TextView
+                            android:id="@+id/navTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:ellipsize="end"
+                            android:maxWidth="140dp"
+                            android:singleLine="true"
+                            android:textColor="#FFFFFFFF"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/mapBorder"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </FrameLayout>
+
+                <!-- Música con la portada en miniatura -->
+                <LinearLayout
+                    android:id="@+id/mediaCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/float_card"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:id="@+id/artBox"
+                            android:layout_width="@dimen/thumb"
+                            android:layout_height="@dimen/thumb">
+
+                            <ImageView
+                                android:id="@+id/artIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_music"
+                                android:tint="#FFFFFFFF" />
+
+                            <ImageView
+                                android:id="@+id/albumArt"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:importantForAccessibility="no"
+                                android:scaleType="centerCrop"
+                                android:visibility="gone" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/trackTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:singleLine="true"
+                                android:tag="a1"
+                                android:textColor="@color/text_main"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/trackArtist"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:singleLine="true"
+                                android:tag="a2"
+                                android:textColor="@color/text_muted"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <com.juandiego.priuslauncher.ProgressLine
+                        android:id="@+id/progress"
+                        android:layout_width="match_parent"
+                        android:layout_height="3dp"
+                        android:layout_marginTop="10dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/btnPrev"
+                            android:layout_width="44dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/chip_bg"
+                            android:contentDescription="@string/prev"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_prev"
+                            android:tag="a1"
+                            android:tint="@color/text_main" />
+
+                        <ImageButton
+                            android:id="@+id/btnPlay"
+                            android:layout_width="44dp"
+                            android:layout_height="36dp"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp"
+                            android:background="@drawable/chip_bg"
+                            android:contentDescription="@string/play_pause"
+                            android:padding="7dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_play"
+                            android:tag="a1"
+                            android:tint="@color/text_main" />
+
+                        <ImageButton
+                            android:id="@+id/btnNext"
+                            android:layout_width="44dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/chip_bg"
+                            android:contentDescription="@string/next"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_next"
+                            android:tag="a1"
+                            android:tint="@color/text_main" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/dockBar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dock_h"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingEnd="14dp" />
+    </LinearLayout>
+</FrameLayout>

@@ -16,7 +16,9 @@ import java.util.concurrent.CopyOnWriteArraySet
 class MediaListenerService : NotificationListenerService() {
 
     private companion object {
-        val NAV_APPS = setOf("com.google.android.apps.maps", "com.waze")
+        val NAV_APPS = setOf(
+            "com.google.android.apps.maps", "com.waze", "app.organicmaps", "net.osmand", "net.osmand.plus", "com.here.app.maps"
+        )
     }
 
     override fun onListenerConnected() {

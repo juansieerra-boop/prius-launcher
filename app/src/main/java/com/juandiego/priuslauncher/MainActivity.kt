@@ -85,6 +85,7 @@ class MainActivity : Activity() {
     private var navText: TextView? = null
     private var navSub: TextView? = null
     private var mapHint: View? = null
+    private var mapWaiting: View? = null
     private var artBox: View? = null
     private var albumArt: ImageView? = null
     private var artIcon: ImageView? = null
@@ -118,7 +119,7 @@ class MainActivity : Activity() {
         override fun onLocationChanged(location: Location) {
             lastFix = SystemClock.elapsedRealtime()
             showSpeed(if (location.hasSpeed()) location.speed else 0f)
-            mapPanel.setLocation(location.latitude, location.longitude, if (location.hasBearing()) location.bearing else null)
+            showOnMap(location.latitude, location.longitude, if (location.hasBearing()) location.bearing else null)
             Trip.onLocation(this@MainActivity, location)
             Weather.update(this@MainActivity, location)
             showTrip()
@@ -139,7 +140,7 @@ class MainActivity : Activity() {
     /** Ubicación aproximada (red) para el mapa y el clima mientras no hay GPS. */
     private val networkListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-            if (lastFix == 0L) mapPanel.setLocation(location.latitude, location.longitude, null)
+            if (lastFix == 0L) showOnMap(location.latitude, location.longitude, null)
             Weather.update(this@MainActivity, location)
         }
 
@@ -196,22 +197,31 @@ class MainActivity : Activity() {
         appliedKey = configKey()
         sport = Prefs.isSport(this)
         accent = Prefs.accent(this)
-        setContentView(if (sport) R.layout.activity_sport else R.layout.activity_art)
+        setContentView(R.layout.activity_home)
         hideSystemUi()
         bindViews()
+        if (sport) {
+            root.setBackgroundColor(android.graphics.Color.BLACK)
+            carPhoto?.visibility = View.GONE
+            carPhoto = null
+            findViewById<View>(R.id.btnDayNight).visibility = View.GONE
+        } else {
+            sportCar?.visibility = View.GONE
+            sportCar = null
+        }
+        mapWaiting = findViewById(R.id.mapWaiting)
 
         findViewById<TextView>(R.id.carName).text =
             if (sport) "${getString(R.string.brand_title)}  ·  ${getString(R.string.sport_suffix)}" else getString(R.string.brand_title)
 
-        mapPanel = MapPanel(this, findViewById(R.id.mapContainer), sport, Prefs.lightTheme(this), accent) { openGoogleMaps() }
-        mapPanel.create(state)
-        if (sport) {
-            roundClip(findViewById(R.id.mapCard), 14f)
-            findViewById<TextView>(R.id.mapLabel).setText(if (mapPanel.usingGoogle) R.string.maps_google else R.string.maps_label)
+        mapPanel = MapPanel(this, findViewById(R.id.mapContainer), sport, Prefs.lightTheme(this), accent, { openGoogleMaps() }) {
+            startActivity(Intent(this, AppsActivity::class.java).putExtra(AppsActivity.EXTRA_PICK_SLOT, DockSlots.MAPS))
         }
+        mapPanel.create(state)
+        roundClip(findViewById(R.id.mapCard), 14f)
         artBox?.let { roundClip(it, 10f) }
 
-        dock = Dock(this, findViewById(R.id.dockBar), sport)
+        dock = Dock(this, findViewById(R.id.dockBar), sport, showClock = false)
         dock.build()
 
         setupClicks()
@@ -392,7 +402,7 @@ class MainActivity : Activity() {
 
     private fun setupClicks() {
         findViewById<View>(R.id.btnSettings).setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
-        findViewById<View>(R.id.btnAndroid).setOnClickListener {
+        findViewById<View?>(R.id.btnAndroid)?.setOnClickListener {
             if (!tryStart(Intent(Settings.ACTION_SETTINGS))) Toast.makeText(this, R.string.cant_open, Toast.LENGTH_SHORT).show()
         }
         findViewById<ImageButton?>(R.id.btnDayNight)?.let { b ->
@@ -429,10 +439,22 @@ class MainActivity : Activity() {
         carPhoto?.accent = accent
         sportCar?.accent = accent
         progress.color = accent
+        val d = resources.displayMetrics.density
+        findViewById<View>(R.id.mapBorder).background = GradientDrawable().apply {
+            cornerRadius = 14 * d
+            setColor(0)
+            setStroke((1 * d).toInt(), if (sport) scaleColor(accent, 0.3f) else getColor(R.color.stroke))
+        }
         if (sport) {
             val a2 = scaleColor(accent, 0.62f)
             val a3 = scaleColor(accent, 0.25f)
             paintTags(root, accent, a2, a3)
+            findViewById<View>(R.id.mediaCard).background = GradientDrawable().apply {
+                cornerRadius = 12 * d
+                setColor(android.graphics.Color.BLACK)
+                setStroke((1 * d).toInt(), scaleColor(accent, 0.3f))
+            }
+            artBox?.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(accent, scaleColor(accent, 0.15f)))
             tickRuler?.color = accent
             tickRuler?.dim = a3
             progress.trackColor = a3
@@ -514,12 +536,16 @@ class MainActivity : Activity() {
 
     // ---------- Mapa y navegación ----------
 
+    private fun showOnMap(lat: Double, lon: Double, bearing: Float?) {
+        mapPanel.setLocation(lat, lon, bearing)
+        mapWaiting?.visibility = View.GONE
+    }
+
+    /** Abre la app de mapas elegida (mantén presionado el mapa para cambiarla); si no, Google Maps. */
     private fun openGoogleMaps() {
-        val gm = packageManager.getLaunchIntentForPackage(GMAPS)
-        if (gm == null || !tryStart(gm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))) {
-            val i = DockSlots.resolve(this, getSharedPreferences(DockSlots.PREFS, MODE_PRIVATE), DockSlots.MAPS)
-            if (i == null || !tryStart(i)) Toast.makeText(this, R.string.cant_open, Toast.LENGTH_SHORT).show()
-        }
+        val i = DockSlots.resolve(this, getSharedPreferences(DockSlots.PREFS, MODE_PRIVATE), DockSlots.MAPS)
+            ?: packageManager.getLaunchIntentForPackage(GMAPS)?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (i == null || !tryStart(i)) Toast.makeText(this, R.string.cant_open, Toast.LENGTH_SHORT).show()
     }
 
     private fun updateNav() {
@@ -591,7 +617,7 @@ class MainActivity : Activity() {
                 .mapNotNull { lm.getLastKnownLocation(it) }
                 .maxByOrNull { it.time }
             if (best != null) {
-                mapPanel.setLocation(best.latitude, best.longitude, null)
+                showOnMap(best.latitude, best.longitude, null)
                 Weather.update(this, best)
             }
         } catch (e: SecurityException) {

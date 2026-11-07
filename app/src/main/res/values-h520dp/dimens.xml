@@ -13,4 +13,8 @@
     <dimen name="side_w">200dp</dimen>
     <dimen name="map_w">220dp</dimen>
     <dimen name="map_h">210dp</dimen>
+    <dimen name="speed_min">100sp</dimen>
+    <dimen name="top_h">56dp</dimen>
+    <dimen name="col_w">220dp</dimen>
+    <dimen name="thumb">62dp</dimen>
 </resources>

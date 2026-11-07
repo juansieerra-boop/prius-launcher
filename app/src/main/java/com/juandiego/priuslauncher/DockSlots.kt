@@ -38,7 +38,7 @@ object DockSlots {
         ),
         Slot(
             R.string.slot_maps, R.drawable.ic_pin,
-            listOf("com.google.android.apps.maps", "com.waze")
+            listOf("com.google.android.apps.maps", "com.waze", "app.organicmaps", "net.osmand", "net.osmand.plus", "com.here.app.maps")
         ),
         Slot(
             R.string.slot_video, R.drawable.ic_video,
