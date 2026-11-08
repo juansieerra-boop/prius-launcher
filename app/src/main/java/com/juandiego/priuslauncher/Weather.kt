@@ -17,7 +17,11 @@ import kotlin.math.roundToInt
  * o si te mueves más de 10 km. Se guarda para mostrarlo aunque no haya internet.
  */
 object Weather {
-    class Now(val tempC: Double, val code: Int, val isDay: Boolean, val city: String?)
+    class Hour(val hour: Int, val tempC: Double, val code: Int, val isDay: Boolean)
+    class Now(
+        val tempC: Double, val code: Int, val isDay: Boolean, val city: String?,
+        val maxC: Double? = null, val minC: Double? = null, val hours: List<Hour> = emptyList()
+    )
 
     private const val PREFS = "weather"
     private const val EVERY_MS = 15 * 60 * 1000L
@@ -37,7 +41,12 @@ object Weather {
         if (now != null) return
         val p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (!p.contains("t")) return
-        now = Now(p.getFloat("t", 0f).toDouble(), p.getInt("code", 0), p.getBoolean("day", true), p.getString("city", null))
+        now = Now(
+            p.getFloat("t", 0f).toDouble(), p.getInt("code", 0), p.getBoolean("day", true), p.getString("city", null),
+            if (p.contains("max")) p.getFloat("max", 0f).toDouble() else null,
+            if (p.contains("min")) p.getFloat("min", 0f).toDouble() else null,
+            decodeHours(p.getString("hours", null))
+        )
         lastFetch = p.getLong("time", 0L)
     }
 
@@ -53,7 +62,8 @@ object Weather {
             try {
                 val url = String.format(
                     Locale.US,
-                    "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,weather_code,is_day",
+                    "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,weather_code,is_day" +
+                        "&hourly=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&forecast_days=2&timezone=auto",
                     lat, lon
                 )
                 val conn = URL(url).openConnection() as HttpURLConnection
@@ -65,7 +75,31 @@ object Weather {
                     conn.disconnect()
                 }
                 if (body != null) {
-                    val cur = JSONObject(body).getJSONObject("current")
+                    val json = JSONObject(body)
+                    val cur = json.getJSONObject("current")
+                    var maxC: Double? = null
+                    var minC: Double? = null
+                    val hours = ArrayList<Hour>()
+                    try {
+                        val daily = json.getJSONObject("daily")
+                        maxC = daily.getJSONArray("temperature_2m_max").getDouble(0)
+                        minC = daily.getJSONArray("temperature_2m_min").getDouble(0)
+                        // Las próximas 4 horas, empezando por la siguiente hora completa
+                        val hr = json.getJSONObject("hourly")
+                        val times = hr.getJSONArray("time")
+                        val temps = hr.getJSONArray("temperature_2m")
+                        val codes = hr.getJSONArray("weather_code")
+                        val days = hr.optJSONArray("is_day")
+                        val nowKey = cur.getString("time").take(13)
+                        var start = -1
+                        for (i in 0 until times.length()) if (times.getString(i).take(13) > nowKey) { start = i; break }
+                        if (start >= 0) for (i in start until minOf(start + 4, times.length())) {
+                            val h = times.getString(i).substring(11, 13).toInt()
+                            hours.add(Hour(h, temps.getDouble(i), codes.getInt(i), (days?.optInt(i, 1) ?: 1) == 1))
+                        }
+                    } catch (e: Exception) {
+                        // sin pronóstico: se muestra solo el clima actual
+                    }
                     val city = try {
                         @Suppress("DEPRECATION")
                         Geocoder(app, Locale(Prefs.lang(app))).getFromLocation(lat, lon, 1)
@@ -73,13 +107,23 @@ object Weather {
                     } catch (e: Exception) {
                         null
                     }
-                    val n = Now(cur.getDouble("temperature_2m"), cur.getInt("weather_code"), cur.optInt("is_day", 1) == 1, city ?: now?.city)
+                    val n = Now(
+                        cur.getDouble("temperature_2m"), cur.getInt("weather_code"), cur.optInt("is_day", 1) == 1, city ?: now?.city,
+                        maxC, minC, hours
+                    )
                     now = n
                     lastFetch = System.currentTimeMillis()
                     lastLoc = loc
                     app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                         .putFloat("t", n.tempC.toFloat()).putInt("code", n.code).putBoolean("day", n.isDay)
-                        .putString("city", n.city).putLong("time", lastFetch).apply()
+                        .putString("city", n.city).putLong("time", lastFetch)
+                        .putString("hours", encodeHours(hours)).apply()
+                    val mx = n.maxC
+                    val mn = n.minC
+                    if (mx != null && mn != null) {
+                        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                            .putFloat("max", mx.toFloat()).putFloat("min", mn.toFloat()).apply()
+                    }
                     main.post { listeners.forEach { it() } }
                 }
             } catch (e: Exception) {
@@ -90,10 +134,26 @@ object Weather {
         }.start()
     }
 
-    fun tempText(c: Context, n: Now): String {
-        val t = if (Prefs.useKmh(c)) n.tempC else n.tempC * 9.0 / 5.0 + 32.0
+    fun tempText(c: Context, n: Now): String = degrees(c, n.tempC)
+
+    /** Grados en °F (millas) o °C (kilómetros), según tu ajuste de velocidad. */
+    fun degrees(c: Context, celsius: Double): String {
+        val t = if (Prefs.useKmh(c)) celsius else celsius * 9.0 / 5.0 + 32.0
         return "${t.roundToInt()}°"
     }
+
+    private fun encodeHours(list: List<Hour>) = list.joinToString(";") { "${it.hour},${it.tempC},${it.code},${if (it.isDay) 1 else 0}" }
+
+    private fun decodeHours(s: String?): List<Hour> = try {
+        if (s.isNullOrBlank()) emptyList() else s.split(";").map {
+            val p = it.split(",")
+            Hour(p[0].toInt(), p[1].toDouble(), p[2].toInt(), p[3] == "1")
+        }
+    } catch (e: Exception) {
+        emptyList()
+    }
+
+    fun iconFor(code: Int, isDay: Boolean): Int = iconRes(Now(0.0, code, isDay, null))
 
     fun descRes(code: Int): Int = when (code) {
         0 -> R.string.weather_clear

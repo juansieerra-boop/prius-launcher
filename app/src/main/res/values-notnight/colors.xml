@@ -28,4 +28,16 @@
     <color name="hero_text_soft">#FF3D434B</color>
     <color name="hero_text_muted">#FF6B717A</color>
     <color name="hero_text_dim">#FF8A8F98</color>
+    <!-- Diseño estilo Apple (día) -->
+    <color name="cp_bg">#FFE9EAEE</color>
+    <color name="cp_side">#FFFFFFFF</color>
+    <color name="cp_panel_top">#FFFFFFFF</color>
+    <color name="cp_panel_bottom">#FFF1F2F5</color>
+    <color name="cp_card_top">#FFFFFFFF</color>
+    <color name="cp_card_bottom">#FFF6F7F9</color>
+    <color name="cp_text">#FF111111</color>
+    <color name="cp_muted">#FF6B6F76</color>
+    <color name="cp_chip">#F2FFFFFF</color>
+    <color name="cp_track">#FFDADCE0</color>
+    <color name="cp_line">#FFE2E4E8</color>
 </resources>

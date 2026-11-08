@@ -36,7 +36,7 @@ class Dock(
     private val wifiBtn: ImageButton?,
     private val btBtn: ImageButton?,
     private val actions: Actions
-) {
+) : HomeDock {
     interface Actions {
         fun openMaps()
         fun openMusic()
@@ -91,7 +91,7 @@ class Dock(
     private fun mainColor() = if (sport) accent else act.getColor(R.color.text_main)
     private fun softColor() = if (sport) scaleColor(accent, 0.62f) else act.getColor(R.color.text_muted)
 
-    fun build() {
+    override fun build() {
         bar.removeAllViews()
         icons.clear()
         labels.clear()
@@ -182,7 +182,7 @@ class Dock(
         applyColors(accent)
     }
 
-    fun applyColors(color: Int) {
+    override fun applyColors(color: Int) {
         accent = color
         val ic = ColorStateList.valueOf(if (sport) accent else act.getColor(R.color.icon_tint))
         for (v in icons) v.imageTintList = ic
@@ -191,7 +191,7 @@ class Dock(
         refreshToggles()
     }
 
-    fun start() {
+    override fun start() {
         if (started) return
         started = true
         val f = IntentFilter().apply {
@@ -202,7 +202,7 @@ class Dock(
         refreshToggles()
     }
 
-    fun stop() {
+    override fun stop() {
         if (!started) return
         started = false
         try { act.unregisterReceiver(stateReceiver) } catch (e: IllegalArgumentException) { }
@@ -298,4 +298,12 @@ fun monoFilter(c: Int): ColorMatrixColorFilter {
         0f, 0f, 0f, 1f, 0f
     ))
     return ColorMatrixColorFilter(m)
+}
+
+/** La barra de apps de la pantalla de inicio (abajo en Sport, a la izquierda en Apple). */
+interface HomeDock {
+    fun build()
+    fun applyColors(color: Int)
+    fun start()
+    fun stop()
 }

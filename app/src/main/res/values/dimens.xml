@@ -24,4 +24,12 @@
     <dimen name="d_icon">24dp</dimen>
     <dimen name="d_app">26dp</dimen>
     <dimen name="gap">14dp</dimen>
+    <dimen name="cp_pad">8dp</dimen>
+    <dimen name="cp_side">58dp</dimen>
+    <dimen name="cp_speed">50sp</dimen>
+    <dimen name="cp_icon">42dp</dimen>
+    <dimen name="cp_temp">36sp</dimen>
+    <dimen name="cp_art">54dp</dimen>
+    <dimen name="cp_title">15sp</dimen>
+    <dimen name="cp_small">11sp</dimen>
 </resources>

@@ -34,4 +34,16 @@
     <color name="gps_ok">#FF3DDC84</color>
     <color name="gps_wait">#FFFFC400</color>
     <color name="sun">#FFF5B400</color>
+    <!-- Diseño estilo Apple (noche) -->
+    <color name="cp_bg">#FF000000</color>
+    <color name="cp_side">#FF1A1C20</color>
+    <color name="cp_panel_top">#FF16191E</color>
+    <color name="cp_panel_bottom">#FF0B0D10</color>
+    <color name="cp_card_top">#FF2A2D33</color>
+    <color name="cp_card_bottom">#FF1C1F24</color>
+    <color name="cp_text">#FFFFFFFF</color>
+    <color name="cp_muted">#FF9AA0A8</color>
+    <color name="cp_chip">#E61E2126</color>
+    <color name="cp_track">#FF3A3E45</color>
+    <color name="cp_line">#FF3A3E45</color>
 </resources>

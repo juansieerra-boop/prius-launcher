@@ -65,7 +65,7 @@
     <string name="cant_open">Could not open the app</string>
     <string name="settings_title">Customize</string>
     <string name="style_section">STYLE</string>
-    <string name="style_art">Art</string>
+    <string name="style_art">Apple</string>
     <string name="style_sport">Sport</string>
     <string name="accent_section">COLOR</string>
     <string name="custom_color">Custom color (slide)</string>
@@ -112,4 +112,10 @@
     <string name="view_normal">Normal</string>
     <string name="view_anatomy">Anatomy</string>
     <string name="view_note">Sport always uses the Normal view. Lights turn on from 5 PM to 6 AM.</string>
+    <string name="w_max_min">H %1$s  L %2$s</string>
+    <string name="unit_mph_small">mph</string>
+    <string name="unit_kmh_small">km/h</string>
+    <string name="d_zlink">ZLink</string>
+    <string name="gps_short">GPS</string>
+    <string name="card_weather">Weather</string>
 </resources>

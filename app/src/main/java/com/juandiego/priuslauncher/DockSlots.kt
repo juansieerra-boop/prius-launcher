@@ -18,6 +18,7 @@ object DockSlots {
     const val MAPS = 3
     const val MUSIC = 5
     const val PHONE = 6
+    const val ZLINK = 7
 
     /** Los primeros 6 son la cuadrícula; el 7 es "Conectar teléfono". */
     const val TILE_COUNT = 6
@@ -52,6 +53,14 @@ object DockSlots {
         Slot(
             R.string.connect_phone, R.drawable.ic_smartphone,
             listOf("com.syu.bt", "com.microntek.bluetooth", "com.ts.bt", "com.fyt.bt", "com.google.android.dialer", "com.android.dialer")
+        ),
+        // ZLink: la app de CarPlay / Android Auto que trae la pantalla (el nombre del paquete cambia según el fabricante)
+        Slot(
+            R.string.d_zlink, R.drawable.ic_g_zlink,
+            listOf(
+                "com.zjinnova.zlink", "com.zjinnova.zlink.carplay", "com.zjinnova.zlinkcar", "com.zjinnova.zlink5",
+                "com.syu.carlink", "com.suding.carlink", "com.ts.carplay", "com.fyt.carplay", "net.easyconn.carman"
+            )
         )
     )
 
@@ -78,6 +87,18 @@ object DockSlots {
         for (pkg in ALL[index].packages) {
             val launch = ctx.packageManager.getLaunchIntentForPackage(pkg)
             if (launch != null) return launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        if (index == ZLINK) {
+            // Si no está en la lista, se busca cualquier app instalada que se llame "ZLink"
+            val pm = ctx.packageManager
+            val main = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+            val hit = pm.queryIntentActivities(main, 0).firstOrNull {
+                it.loadLabel(pm).toString().replace(" ", "").contains("zlink", ignoreCase = true)
+            }
+            if (hit != null) {
+                return Intent(main).setComponent(ComponentName(hit.activityInfo.packageName, hit.activityInfo.name))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+            }
         }
         return null
     }

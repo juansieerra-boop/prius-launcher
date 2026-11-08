@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop"
-        android:src="@drawable/car_night" />
+        android:src="@drawable/car_main" />
 
     <View
         android:layout_width="match_parent"

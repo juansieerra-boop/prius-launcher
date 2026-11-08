@@ -85,7 +85,7 @@ class MainActivity : Activity() {
     private lateinit var btnPlay: ImageButton
 
     private lateinit var mapPanel: MapPanel
-    private lateinit var dock: Dock
+    private lateinit var dock: HomeDock
 
     private var sessionManager: MediaSessionManager? = null
     private var controller: MediaController? = null
@@ -189,19 +189,29 @@ class MainActivity : Activity() {
         appliedKey = configKey()
         sport = Prefs.isSport(this)
         accent = Prefs.accent(this)
-        setContentView(R.layout.activity_home)
+        setContentView(if (sport) R.layout.activity_sport else R.layout.activity_home)
         hideSystemUi()
         bindViews()
         applyStyle()
+        carPhoto?.apply {
+            // Dónde va el carro dentro de su espacio (la carretera se dibuja alrededor)
+            if (sport) { carWidthFrac = 0.92f; carBottomFrac = 0.84f; carMaxHeightFrac = 0.66f }
+            else { carWidthFrac = 0.96f; carBottomFrac = 0.76f; carMaxHeightFrac = 0.6f }
+        }
 
         mapPanel = MapPanel(this, findViewById(R.id.mapContainer), sport, Prefs.lightTheme(this), accent, { openMaps() }) {
             pickSlot(DockSlots.MAPS)
         }
         mapPanel.create(state)
-        roundClip(findViewById(R.id.mapCard), if (sport) 4f else 12f)
-        artBox?.let { roundClip(it, if (sport) 4f else 12f) }
+        roundClip(findViewById(R.id.mapCard), if (sport) 4f else 22f)
+        artBox?.let { roundClip(it, if (sport) 4f else 10f) }
+        findViewById<View?>(R.id.carCard)?.let { roundClip(it, 24f) }
 
-        dock = Dock(this, findViewById(R.id.dockBar), sport, findViewById(R.id.statusWifi), findViewById(R.id.statusBt), dockActions)
+        dock = if (sport) {
+            Dock(this, findViewById(R.id.dockBar), true, findViewById(R.id.statusWifi), findViewById(R.id.statusBt), dockActions)
+        } else {
+            SideDock(this, findViewById(R.id.sideApps), findViewById(R.id.statusWifi), findViewById(R.id.statusBt), dockActions)
+        }
         dock.build()
 
         setupClicks()
@@ -246,6 +256,10 @@ class MainActivity : Activity() {
         val dayNight = findViewById<ImageButton>(R.id.btnDayNight)
         if (!sport) {
             dayNight.setImageResource(if (Prefs.lightTheme(this)) R.drawable.ic_moon else R.drawable.ic_sun)
+            // Íconos de las tarjetas, estilo iPhone
+            badge(findViewById(R.id.musicBadge), 0xFFFF6A7E.toInt(), 0xFFF0263F.toInt(), android.graphics.Color.WHITE)
+            badge(findViewById(R.id.weatherBadge), 0xFF5AB8FF.toInt(), 0xFF2F7BEA.toInt(), 0xFFFFD84A.toInt())
+            findViewById<ImageView?>(R.id.navChipIcon)?.imageTintList = ColorStateList.valueOf(0xFF2B7BFF.toInt())
             return
         }
         root.setBackgroundColor(android.graphics.Color.BLACK)
@@ -270,6 +284,12 @@ class MainActivity : Activity() {
             if (v is ViewGroup) for (i in 0 until v.childCount) walk(v.getChildAt(i))
         }
         walk(root)
+    }
+
+    private fun badge(v: ImageView?, top: Int, bottom: Int, tint: Int) {
+        v ?: return
+        v.background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(top, bottom)).apply { cornerRadius = dp(6f) }
+        v.imageTintList = ColorStateList.valueOf(tint)
     }
 
     override fun onStart() {
@@ -312,7 +332,10 @@ class MainActivity : Activity() {
         mapPanel.onResume()
         dock.build()
         applyAccent()
-        speedUnit.setText(if (Prefs.useKmh(this)) R.string.unit_kmh else R.string.unit_mph)
+        speedUnit.setText(
+            if (sport) { if (Prefs.useKmh(this)) R.string.unit_kmh else R.string.unit_mph }
+            else { if (Prefs.useKmh(this)) R.string.unit_kmh_small else R.string.unit_mph_small }
+        )
         showSpeed(lastMps)
         showTrip()
         showWeather()
@@ -429,6 +452,9 @@ class MainActivity : Activity() {
             true
         }
         gpsText?.setOnClickListener { onGpsTap() }
+        findViewById<View?>(R.id.btnSettings)?.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
+        findViewById<View?>(R.id.btnApps)?.setOnClickListener { startActivity(Intent(this, AppsActivity::class.java)) }
+        findViewById<View?>(R.id.navChip)?.setOnClickListener { openMaps() }
     }
 
     private fun onGpsTap() {
@@ -462,13 +488,12 @@ class MainActivity : Activity() {
             progress.trackColor = a3
             setGpsState(gpsState)
         } else {
-            findViewById<View>(R.id.mapBorder).background = GradientDrawable().apply {
-                cornerRadius = 12 * d
-                setColor(0)
-                setStroke((1 * d).toInt(), getColor(R.color.stroke))
-            }
+            // Estilo Apple: portada con degradado del color del tema, barra de progreso blanca/negra
             artBox?.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(accent, scaleColor(accent, 0.45f)))
-            trackTitle.setTextColor(if (Prefs.lightTheme(this)) getColor(R.color.text_main) else accent)
+            artIcon?.imageTintList = ColorStateList.valueOf(android.graphics.Color.WHITE)
+            progress.color = getColor(R.color.cp_text)
+            progress.trackColor = getColor(R.color.cp_track)
+            setGpsState(gpsState)
         }
     }
 
@@ -514,20 +539,15 @@ class MainActivity : Activity() {
         }
         val custom = if (uri != null) CarPhoto.loadCustom(this, 1400) else null
         if (custom != null) {
-            cp.setCar(custom, null, FloatArray(0), FloatArray(0), mode, true)
+            cp.setCar(custom, FloatArray(0), FloatArray(0), FloatArray(0), mode, true)
             return
         }
-        val bodyRes = when {
-            anat && light -> R.drawable.anat_day
-            anat -> R.drawable.anat_night
-            light -> R.drawable.car_day
-            else -> R.drawable.car_night
-        }
+        // El mismo carro plateado de día, de noche y en Sport; Anatomy es opcional (Ajustes)
         cp.setCar(
-            CarPhoto.loadRes(this, bodyRes),
-            if (anat) CarPhoto.loadRes(this, R.drawable.anat_pipes) else null,
+            CarPhoto.loadRes(this, if (anat) R.drawable.anat_main else R.drawable.car_main),
             floats(if (anat) R.string.anat_wheels else R.string.car_wheels),
             floats(if (anat) R.string.anat_lamps else R.string.car_lamps),
+            floats(R.string.road_anchor),
             mode, false
         )
     }
@@ -559,6 +579,13 @@ class MainActivity : Activity() {
         weatherTemp?.text = Weather.tempText(this, n)
         val desc = getString(Weather.descRes(n.code))
         weatherDesc?.text = desc
+        findViewById<TextView?>(R.id.weatherCity)?.text = n.city ?: ""
+        findViewById<TextView?>(R.id.weatherRange)?.let { t ->
+            val mx = n.maxC
+            val mn = n.minC
+            t.text = if (mx != null && mn != null) getString(R.string.w_max_min, Weather.degrees(this, mx), Weather.degrees(this, mn)) else ""
+        }
+        findViewById<LinearLayout?>(R.id.weatherHours)?.let { row -> showHours(row, n) }
         weatherIcon?.let { iv ->
             val res = Weather.iconRes(n)
             iv.setImageResource(res)
@@ -566,9 +593,41 @@ class MainActivity : Activity() {
                 when {
                     sport -> scaleColor(accent, 0.62f)
                     res == R.drawable.ic_sun -> getColor(R.color.sun)
-                    else -> getColor(R.color.text_muted)
+                    else -> getColor(R.color.cp_muted)
                 }
             )
+        }
+    }
+
+    /** Pronóstico de las próximas 4 horas: hora, ícono y temperatura. */
+    private fun showHours(row: LinearLayout, n: Weather.Now) {
+        row.removeAllViews()
+        val is24 = android.text.format.DateFormat.is24HourFormat(this)
+        for (h in n.hours) {
+            val col = LinearLayout(this)
+            col.orientation = LinearLayout.VERTICAL
+            col.gravity = android.view.Gravity.CENTER_HORIZONTAL
+            val label = TextView(this).apply {
+                text = if (is24) "${h.hour}:00" else "${if (h.hour % 12 == 0) 12 else h.hour % 12} ${if (h.hour < 12) "AM" else "PM"}"
+                textSize = 10f
+                setTextColor(getColor(R.color.cp_muted))
+                maxLines = 1
+            }
+            val icon = ImageView(this).apply {
+                val res = Weather.iconFor(h.code, h.isDay)
+                setImageResource(res)
+                imageTintList = ColorStateList.valueOf(if (res == R.drawable.ic_sun) getColor(R.color.sun) else getColor(R.color.cp_muted))
+            }
+            val temp = TextView(this).apply {
+                text = Weather.degrees(this@MainActivity, h.tempC)
+                textSize = 12f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(getColor(R.color.cp_text))
+            }
+            col.addView(label)
+            col.addView(icon, LinearLayout.LayoutParams(dp(14f).toInt(), dp(14f).toInt()).apply { topMargin = dp(2f).toInt(); bottomMargin = dp(2f).toInt() })
+            col.addView(temp)
+            row.addView(col, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         }
     }
 
@@ -708,6 +767,20 @@ class MainActivity : Activity() {
 
     private fun setGpsState(state: GpsState) {
         gpsState = state
+        if (!sport) {
+            // Apple: un puntito verde (GPS listo), amarillo (buscando) o gris (apagado)
+            findViewById<View?>(R.id.gpsDot)?.background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(
+                    when (state) {
+                        GpsState.OK -> 0xFF34C759.toInt()
+                        GpsState.SEARCHING -> 0xFFFFC23D.toInt()
+                        else -> 0xFF8E939B.toInt()
+                    }
+                )
+            }
+            return
+        }
         val t = gpsText ?: return
         t.setTextColor(
             when (state) {

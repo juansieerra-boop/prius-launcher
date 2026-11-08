@@ -73,7 +73,7 @@
     <string name="cant_open">No se pudo abrir la app</string>
     <string name="settings_title">Personalizar</string>
     <string name="style_section">ESTILO</string>
-    <string name="style_art">Art</string>
+    <string name="style_art">Apple</string>
     <string name="style_sport">Sport</string>
     <string name="accent_section">COLOR</string>
     <string name="custom_color">Color personalizado (desliza)</string>
@@ -120,9 +120,17 @@
     <string name="view_normal">Normal</string>
     <string name="view_anatomy">Anatomy</string>
     <string name="view_note">Sport siempre usa la vista Normal. Las luces se encienden de 5 PM a 6 AM.</string>
-    <string name="car_wheels" translatable="false">0.5486,0.8058,0.0486,0.1295,0.9414,0.5627,0.0314,0.1004</string>
-    <string name="car_lamps" translatable="false">0.3893,0.5548,0.0286,0.0291,0.3300,0.5773,0.0214,0.0211,0.0514,0.4624,0.0143,0.0291,0.3571,0.8058,0.0157,0.0238</string>
-    <string name="anat_wheels" translatable="false">0.5500,0.8223,0.0486,0.1300,0.9429,0.5676,0.0300,0.1008</string>
-    <string name="anat_lamps" translatable="false">0.3893,0.5637,0.0286,0.0292,0.3286,0.5836,0.0214,0.0212,0.0443,0.4576,0.0143,0.0292,0.3550,0.8156,0.0157,0.0239</string>
+    <string name="car_wheels" translatable="false">0.4884,0.8018,0.0451,0.1344,6,0.9285,0.6057,0.0264,0.1013,6</string>
+    <string name="car_lamps" translatable="false">0.3366,0.5507,0.0154,0.0264,0.2838,0.5639,0.0198,0.0220,0.0396,0.4626,0.0077,0.0308,0.3190,0.7555,0.0132,0.0264</string>
+    <string name="anat_wheels" translatable="false">0.4884,0.8018,0.0451,0.1344,6,0.9285,0.6057,0.0264,0.1013,6</string>
+    <string name="anat_lamps" translatable="false">0.3366,0.5507,0.0154,0.0264,0.2838,0.5639,0.0198,0.0220,0.0396,0.4626,0.0077,0.0308,0.3190,0.7555,0.0132,0.0264</string>
     <string name="brand_short" translatable="false">PRIUS</string>
+    <!-- Punto del piso bajo la llanta delantera (fracción del dibujo) para la carretera -->
+    <string name="road_anchor" translatable="false">0.4840,0.9824</string>
+    <string name="w_max_min">Máx %1$s  Mín %2$s</string>
+    <string name="unit_mph_small">mph</string>
+    <string name="unit_kmh_small">km/h</string>
+    <string name="d_zlink">ZLink</string>
+    <string name="gps_short">GPS</string>
+    <string name="card_weather">Clima</string>
 </resources>
