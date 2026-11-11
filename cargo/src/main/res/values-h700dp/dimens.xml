@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="gap">14dp</dimen>
+    <dimen name="clock">40sp</dimen>
+    <dimen name="art">96dp</dimen>
+</resources>

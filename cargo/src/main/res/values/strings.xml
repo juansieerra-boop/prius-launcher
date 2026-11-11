@@ -1,0 +1,56 @@
+<resources>
+    <string name="app_name">CarGo</string>
+    <string name="car">Carro</string>
+    <string name="art">Portada</string>
+    <string name="nav">Navegación</string>
+    <string name="map_hint">Mapa en vivo (siguiente módulo)</string>
+    <string name="no_music">Sin música</string>
+    <string name="prev">Anterior</string>
+    <string name="play">Reproducir</string>
+    <string name="next">Siguiente</string>
+    <string name="unit_mph">MPH</string>
+    <string name="unit_kmh">KM/H</string>
+    <string name="rpm_fmt">%1$s RPM</string>
+    <string name="temp_f">Motor %1$d °F</string>
+    <string name="temp_c">Motor %1$d °C</string>
+    <string name="temp_none">Motor --</string>
+    <string name="volt_fmt">Batería %1$.1f V</string>
+    <string name="volt_none">Batería --</string>
+
+    <string name="obd_title">CarGo · OBD2</string>
+    <string name="obd_channel">Telemetría OBD2</string>
+    <string name="obd_searching">Buscando adaptador OBD2…</string>
+    <string name="obd_connecting">Conectando %1$s…</string>
+    <string name="obd_connected">Conectado: %1$s</string>
+    <string name="obd_no_vehicle">Adaptador listo · enciende el carro</string>
+    <string name="obd_no_adapter">Conecta el adaptador OBD2 (USB o Bluetooth)</string>
+    <string name="obd_no_permission">Falta permiso para el adaptador OBD2</string>
+
+    <string name="installer_title">Modo instalador</string>
+    <string name="pin_hint">Código</string>
+    <string name="pin_wrong">Código incorrecto</string>
+    <string name="pin_saved">Código guardado</string>
+    <string name="ok">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="menu_vehicle">Vehículo: %1$s</string>
+    <string name="menu_theme">Tema: %1$s</string>
+    <string name="menu_view">Vista del carro: %1$s</string>
+    <string name="menu_load_png">Cargar PNG del carro (USB)</string>
+    <string name="menu_clear_png">Usar el carro de fábrica</string>
+    <string name="menu_units">Unidades: %1$s</string>
+    <string name="menu_obd">Conexión OBD2: %1$s</string>
+    <string name="menu_home">Hacer CarGo la pantalla de inicio</string>
+    <string name="menu_pin">Cambiar código del instalador</string>
+    <string name="png_none">No encontré archivos PNG en la memoria USB</string>
+    <string name="png_missing">No se pudo abrir el PNG guardado; se usa el carro de fábrica</string>
+
+    <string name="v_prius">Toyota Prius 2011</string>
+    <string name="v_jeep">Jeep Wrangler Sahara 2021</string>
+    <string name="t_day">Día</string>
+    <string name="t_night">Noche</string>
+    <string name="t_xmas">Navidad</string>
+    <string name="view_clean">Limpia</string>
+    <string name="view_xray">Rayos X / Anatomía</string>
+    <string name="view_road">Carretera HUD</string>
+    <string name="view_wire">Vectorial (noche)</string>
+</resources>

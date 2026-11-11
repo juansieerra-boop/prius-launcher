@@ -1,0 +1,10 @@
+<!-- Ícono "CG" con carretera (opción 1 de los íconos de CarGo) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <gradient android:angle="270" android:startColor="#FF4AB0FF" android:endColor="#FF1450D6" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/ic_cargo_fg" />
+</layer-list>

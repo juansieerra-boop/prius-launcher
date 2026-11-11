@@ -1,0 +1,2 @@
+-keep class com.cargo.launcher.** { *; }
+-keep class com.hoho.android.usbserial.** { *; }
