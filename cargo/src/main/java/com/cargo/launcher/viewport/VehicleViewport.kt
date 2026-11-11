@@ -188,7 +188,7 @@ class VehicleViewport @JvmOverloads constructor(ctx: Context, attrs: AttributeSe
         roadOverlay.alpha = f
         beams.alpha = f
         glow.alpha = f
-        reflection.alpha = 0.18f * f
+        reflection.alpha = 0.09f * f
         shadow.alpha = 1f - 0.2f * f
     }
 

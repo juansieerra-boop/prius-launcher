@@ -12,11 +12,11 @@
     <string name="unit_mph">MPH</string>
     <string name="unit_kmh">KM/H</string>
     <string name="rpm_fmt">%1$s RPM</string>
-    <string name="temp_f">Motor %1$d °F</string>
-    <string name="temp_c">Motor %1$d °C</string>
-    <string name="temp_none">Motor —</string>
-    <string name="volt_fmt">Batería %1$.1f V</string>
-    <string name="volt_none">Batería —</string>
+    <string name="temp_f">%1$d °F</string>
+    <string name="temp_c">%1$d °C</string>
+    <string name="temp_none">— °F</string>
+    <string name="volt_fmt">%1$.1f V</string>
+    <string name="volt_none">— V</string>
 
     <string name="obd_title">CarGo · OBD2</string>
     <string name="obd_channel">Telemetría OBD2</string>
