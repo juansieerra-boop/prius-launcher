@@ -54,4 +54,7 @@
     <string name="view_xray">Rayos X / Anatomía</string>
     <string name="view_road">Carretera HUD</string>
     <string name="view_wire">Vectorial (noche)</string>
+    <string name="carplay">CarPlay</string>
+    <string name="zlink_missing">No encontré ZLink en este estéreo. Elige la app de CarPlay.</string>
+    <string name="zlink_choose">App para el botón CarPlay</string>
 </resources>

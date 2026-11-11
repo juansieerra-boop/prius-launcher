@@ -67,6 +67,11 @@ object CarGoPrefs {
         get() = p.getInt("usb_baud", 0)
         set(v) = p.edit().putInt("usb_baud", v).apply()
 
+    /** App elegida para el botón de CarPlay (ComponentName aplanado), o null para buscar ZLink sola. */
+    var zlinkComponent: String?
+        get() = p.getString("zlink_cn", null)
+        set(v) = p.edit().putString("zlink_cn", v).apply()
+
     var lastObdLabel: String?
         get() = p.getString("obd_label", null)
         set(v) = p.edit().putString("obd_label", v).apply()

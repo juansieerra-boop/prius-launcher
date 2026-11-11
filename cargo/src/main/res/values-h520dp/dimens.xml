@@ -2,4 +2,5 @@
     <dimen name="gap">10dp</dimen>
     <dimen name="clock">32sp</dimen>
     <dimen name="art">70dp</dimen>
+    <dimen name="side">76dp</dimen>
 </resources>

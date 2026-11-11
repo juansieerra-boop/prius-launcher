@@ -76,6 +76,8 @@ class MainActivity : Activity() {
     private val textMuted = ArrayList<TextView>()
 
     private var customBitmap: Bitmap? = null
+    /** Momento en que se abrió ZLink (0 si no); al volver se restaura todo sin recrear la pantalla. */
+    private var zlinkOpenedAt = 0L
     private var carAspect = 0.5f
     private val taps = ArrayDeque<Long>()
 
@@ -89,6 +91,7 @@ class MainActivity : Activity() {
         bindViews()
         enterImmersive()
         setupInstallerTrigger()
+        setupCarPlayButton()
         applyProfile()
         requestRuntimePermissions()
         ObdService.start(this)
@@ -97,6 +100,17 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         enterImmersive()
+        if (zlinkOpenedAt != 0L) {
+            // De regreso de ZLink (botón Salir o Home del auto): algunas unidades vuelven a mostrar las
+            // barras unos milisegundos después de que regresamos, por eso se re-oculta en dos tiempos.
+            zlinkOpenedAt = 0L
+            root.postDelayed({ enterImmersive() }, 300)
+            root.postDelayed({ enterImmersive() }, 1200)
+        }
+        // Telemetría: el servicio sigue vivo en primer plano; start() es idempotente y lo revive si el
+        // sistema lo hubiera detenido mientras ZLink usaba memoria/USB.
+        ObdService.start(this)
+        showTelemetry(ObdRepository.state.value)   // pinta el último dato al instante, sin esperar
         roadView.running = true
         obdJob?.cancel()
         obdJob = ui.launch { ObdRepository.state.collect { showTelemetry(it) } }
@@ -170,9 +184,9 @@ class MainActivity : Activity() {
         rpmText = findViewById(R.id.rpmText)
         coolantText = findViewById(R.id.coolantText)
         voltText = findViewById(R.id.voltText)
-        cards += listOf(vehiclePanel, findViewById(R.id.mapCard), findViewById(R.id.mediaCard), findViewById(R.id.speedCard))
+        cards += listOf(vehiclePanel, findViewById(R.id.sideBar), findViewById(R.id.mapCard), findViewById(R.id.mediaCard), findViewById(R.id.speedCard))
         textMain += listOf<TextView>(speedValue, findViewById(R.id.clock), findViewById(R.id.trackTitle), findViewById(R.id.mapTitle))
-        textMuted += listOf<TextView>(speedUnit, rpmText, coolantText, voltText, obdStatus, findViewById(R.id.trackArtist), findViewById(R.id.mapHint))
+        textMuted += listOf<TextView>(findViewById(R.id.carPlayLabel), speedUnit, rpmText, coolantText, voltText, obdStatus, findViewById(R.id.trackArtist), findViewById(R.id.mapHint))
 
         // Al cambiar el tamaño del panel (rotación, otra resolución) se recoloca el carro y la carretera
         vehiclePanel.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
@@ -278,6 +292,35 @@ class MainActivity : Activity() {
             ObdState.Status.NO_ADAPTER -> getString(R.string.obd_no_adapter)
             ObdState.Status.NO_PERMISSION -> getString(R.string.obd_no_permission)
             ObdState.Status.SEARCHING, ObdState.Status.IDLE -> getString(R.string.obd_searching)
+        }
+    }
+
+    // ------------------------------------------------------------------ CarPlay (ZLink)
+
+    private fun setupCarPlayButton() {
+        val btn = findViewById<View>(R.id.btnCarPlay)
+        btn.setOnClickListener { openZlink() }
+        btn.setOnLongClickListener { chooseZlinkApp(); true }
+    }
+
+    /** Abre ZLink. Si el estéreo no la tiene (o tiene otro nombre), deja elegir la app una vez. */
+    private fun openZlink() {
+        zlinkOpenedAt = SystemClock.uptimeMillis()
+        if (!ZlinkLauncher.open(this)) {
+            zlinkOpenedAt = 0L
+            Toast.makeText(this, R.string.zlink_missing, Toast.LENGTH_LONG).show()
+            chooseZlinkApp()
+        }
+    }
+
+    private fun chooseZlinkApp() {
+        ui.launch {
+            val apps = withContext(Dispatchers.IO) { ZlinkLauncher.launchableApps(this@MainActivity) }
+            if (apps.isEmpty()) return@launch
+            dialog().setTitle(R.string.zlink_choose).setItems(apps.map { it.first }.toTypedArray()) { _, i ->
+                CarGoPrefs.zlinkComponent = apps[i].second.flattenToString()
+                openZlink()
+            }.show()
         }
     }
 
