@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Escenario de noche: azul profundo, más claro en el horizonte -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:centerColor="#FF1A2340"
+        android:endColor="#FF070A12"
+        android:startColor="#FF0A0F1F" />
+</shape>

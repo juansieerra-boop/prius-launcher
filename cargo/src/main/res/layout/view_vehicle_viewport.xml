@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Viewport del vehículo (sección izquierda, 55 % de la pantalla).
+  Capas en orden Z (la primera queda al fondo):
+    1. vpScene      fondo de escenario (cielo atardecer / noche), crossfade día↔noche
+    2. vpRoad       carretera en perspectiva con carriles que convergen al horizonte y piso mojado
+    3. vpReflection reflejo del auto en el asfalto mojado (solo de noche)
+       vpShadow     sombra de contacto difusa bajo las llantas
+    4. vpCar / vpCarNext  el auto (dos capas para cambiar de vehículo con crossfade, sin parpadeo)
+    5. vpBeams      haces de luz de los faros proyectados sobre el asfalto (solo de noche)
+  VehicleViewport calcula tamaños y posiciones en porcentajes del contenedor, así que funciona igual
+  en 1024x600, 1280x720 y 1920x1080.
+-->
+<com.cargo.launcher.viewport.VehicleViewport xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/vehicleViewport"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="true">
+
+    <!-- 1. Escenario -->
+    <ImageView
+        android:id="@+id/vpScene"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <!-- 2. Carretera en perspectiva -->
+    <com.cargo.launcher.viewport.PerspectiveRoadView
+        android:id="@+id/vpRoad"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 3a. Reflejo en piso mojado (alto y posición los fija VehicleViewport) -->
+    <ImageView
+        android:id="@+id/vpReflection"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0"
+        android:importantForAccessibility="no"
+        android:scaleType="fitCenter"
+        android:scaleY="-1" />
+
+    <!-- 3b. Sombra de contacto -->
+    <ImageView
+        android:id="@+id/vpShadow"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no" />
+
+    <!-- 4. Vehículo (capa visible + capa para el crossfade) -->
+    <ImageView
+        android:id="@+id/vpCar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/car"
+        android:scaleType="fitCenter" />
+
+    <ImageView
+        android:id="@+id/vpCarNext"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0"
+        android:importantForAccessibility="no"
+        android:scaleType="fitCenter" />
+
+    <!-- 5. Haces de luz de los faros -->
+    <com.cargo.launcher.viewport.HeadlightBeamView
+        android:id="@+id/vpBeams"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:visibility="invisible" />
+
+</com.cargo.launcher.viewport.VehicleViewport>

@@ -98,6 +98,13 @@
         app:layout_constraintStart_toEndOf="@id/sideBar"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- Viewport 3D: escenario + carretera en perspectiva + sombra/reflejo + auto + faros.
+             Se usa con los autos de fábrica; con la foto del cliente se usan roadView/carImage. -->
+        <include
+            layout="@layout/view_vehicle_viewport"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
         <com.cargo.launcher.RoadHudView
             android:id="@+id/roadView"
             android:layout_width="match_parent"

@@ -29,6 +29,8 @@ import android.widget.Toast
 import com.cargo.launcher.obd.ObdRepository
 import com.cargo.launcher.obd.ObdService
 import com.cargo.launcher.obd.ObdState
+import com.cargo.launcher.viewport.VehicleType
+import com.cargo.launcher.viewport.VehicleViewport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -63,6 +65,9 @@ class MainActivity : Activity() {
     private lateinit var vehiclePanel: FrameLayout
     private lateinit var roadView: RoadHudView
     private lateinit var carImage: ImageView
+    private lateinit var viewport: VehicleViewport
+    /** true cuando se muestra el viewport 3D (autos de fábrica); false con la foto del cliente. */
+    private var viewportActive = false
     private lateinit var obdStatus: TextView
     private lateinit var dockLogo: ImageView
     private lateinit var speedValue: TextView
@@ -112,12 +117,14 @@ class MainActivity : Activity() {
         ObdService.start(this)
         showTelemetry(ObdRepository.state.value)   // pinta el último dato al instante, sin esperar
         roadView.running = true
+        viewport.running = true
         obdJob?.cancel()
         obdJob = ui.launch { ObdRepository.state.collect { showTelemetry(it) } }
     }
 
     override fun onPause() {
         roadView.running = false   // no se anima mientras otra app está encima
+        viewport.running = false
         obdJob?.cancel()
         super.onPause()
     }
@@ -176,6 +183,7 @@ class MainActivity : Activity() {
         vehiclePanel = findViewById(R.id.vehiclePanel)
         roadView = findViewById(R.id.roadView)
         carImage = findViewById(R.id.carImage)
+        viewport = findViewById(R.id.vehicleViewport)
         obdStatus = findViewById(R.id.obdStatus)
         dockLogo = findViewById(R.id.dockLogo)
         speedValue = findViewById(R.id.speedValue)
@@ -242,6 +250,33 @@ class MainActivity : Activity() {
             setStockCar(v, theme, view)
             placeCar()
         }
+
+        // Autos de fábrica en vista normal o carretera: viewport 3D. Rayos X / alambre y la foto
+        // del cliente siguen usando las capas anteriores.
+        viewportActive = custom == null && (view == CarView.CLEAN || view == CarView.HUD_ROAD)
+        if (viewportActive) {
+            setupVehicleViewport(v, theme == ThemeMode.NIGHT)
+        } else {
+            viewport.visibility = View.GONE
+            carImage.visibility = View.VISIBLE
+        }
+    }
+
+    /**
+     * Viewport del vehículo: carga el auto (Prius plata con rines negros o Jeep blanco con placa CARO)
+     * y aplica día/noche. Noche: asfalto oscuro mojado, faros encendidos y HUD cian neón.
+     * Día: escenario cálido, sin haces de luz. Todo con transiciones suaves, sin recrear vistas.
+     */
+    private fun setupVehicleViewport(vehicleType: VehicleType, isNightMode: Boolean) {
+        val firstTime = viewport.vehicle == null
+        viewport.visibility = View.VISIBLE
+        roadView.visibility = View.GONE      // la carretera en perspectiva reemplaza a la HUD plana
+        carImage.visibility = View.GONE
+        viewport.setVehicle(vehicleType, animate = !firstTime)
+        viewport.setNightMode(isNightMode, animate = !firstTime)
+        val tint = ColorStateList.valueOf(viewport.hudTint)
+        rpmBar.progressTintList = tint
+        speedUnit.setTextColor(viewport.hudTint)
     }
 
     private fun setStockCar(v: Vehicle, theme: ThemeMode, view: CarView) {
@@ -275,7 +310,9 @@ class MainActivity : Activity() {
         val mph = CarGoPrefs.useMph
         val kmh = s.speedKmh
         speedValue.text = if (kmh == null) getString(R.string.no_value) else (if (mph) kmh * 0.621371f else kmh.toFloat()).roundToInt().toString()
-        roadView.setSpeedMph(kmh?.let { it * 0.621371f } ?: 0f)
+        val speedMph = kmh?.let { it * 0.621371f } ?: 0f
+        roadView.setSpeedMph(speedMph)
+        if (viewportActive) viewport.setSpeedMph(speedMph)
 
         val rpm = s.rpm
         rpmBar.progress = rpm ?: 0
