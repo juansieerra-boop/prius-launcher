@@ -3,7 +3,7 @@ S='/tmp/claude-0/-home-claude/97c03cd1-24de-528e-97cf-67eac5af2060/scratchpad'
 sys.path.insert(0,S)
 from rim import rim, R as RR
 mode=sys.argv[1]; out=sys.argv[2]; FRAMES=[int(x) for x in sys.argv[3].split(',')] if len(sys.argv)>3 else range(90)
-car0=cv2.imread('/home/claude/assets2/jeep_day.png',cv2.IMREAD_UNCHANGED).astype(np.float32)
+car0=cv2.imread('/home/claude/assets2/jeep_plain.png',cv2.IMREAD_UNCHANGED).astype(np.float32)
 if mode=='sport':
     bg=cv2.imread(S+'/bg_sport_nocar.png').astype(np.float32); cw=930; ox=120; oy=181
     clip=(0,90,1092,762,0); fadec=(520,700,560,190)
