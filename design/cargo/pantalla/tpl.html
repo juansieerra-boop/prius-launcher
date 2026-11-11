@@ -1,0 +1,74 @@
+<html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0} body{width:1024px;height:600px;overflow:hidden;font-family:Roboto,"DejaVu Sans",sans-serif}
+.card{position:absolute;border-radius:22px;border:1px solid;overflow:hidden}
+.mono{font-variant-numeric:tabular-nums}
+</style></head><body><div id="root" style="position:absolute;inset:0"></div>
+<script>
+const C=/*CFG*/; const p=C.pal;
+const W=1024,H=600,gap=8,side=64;
+document.body.style.background=p.bg;
+const R=document.getElementById('root');
+function el(tag,css,html){const e=document.createElement(tag);e.style.cssText=css;if(html)e.innerHTML=html;R.appendChild(e);return e}
+// Guidelines (porcentajes del área sin padding)
+const iw=W-2*gap, ih=H-2*gap, gV=gap+iw*0.55, gM=gap+ih*0.52, gMe=gap+iw*0.775;
+// barra lateral
+const sb=el('div',`left:${gap}px;top:${gap}px;width:${side}px;height:${ih}px;background:${p.card};border-color:${p.stroke}`);sb.className='card';
+sb.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;padding-top:18px">
+<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(#5BE36C,#1FAE3B);display:grid;place-items:center">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3,6.5 A1.5,1.5 0 0,1 4.5,5 H14 M3,6.5 V15 A1.5,1.5 0 0,0 4.5,16.5 H10 M6,19.5 H10"/><path d="M15.5,8 H20 A1.2,1.2 0 0,1 21.2,9.2 V19.3 A1.2,1.2 0 0,1 20,20.5 H15.5 A1.2,1.2 0 0,1 14.3,19.3 V9.2 A1.2,1.2 0 0,1 15.5,8 Z"/><path d="M16.8,18.2 H18.7"/></svg></div>
+<div style="font-size:10px;margin-top:3px;color:${p.muted}">CarPlay</div></div>
+<div style="position:absolute;bottom:12px;left:12px;width:40px;height:40px;border-radius:10px;background:linear-gradient(#4AB0FF,#1450D6);display:grid;place-items:center">
+<svg width="34" height="34" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M21,15 A8.5,8.5 0 1,0 21,29"/><path d="M39,16 A8.5,8.5 0 1,0 39,28 V22.5 H33"/><path d="M9,36 H39" stroke-width="2"/></svg></div>`;
+// panel del vehículo
+const vx=gap+side+gap, vw=gV-gap-vx, vy=gap, vh=ih;
+const vp=el('div',`left:${vx}px;top:${vy}px;width:${vw}px;height:${vh}px;background:${p.panel};border-color:${p.stroke}`);vp.className='card';
+const cv=document.createElement('canvas');cv.width=vw*2;cv.height=vh*2;cv.style.cssText=`position:absolute;inset:0;width:${vw}px;height:${vh}px`;vp.appendChild(cv);
+const img=new Image();img.src=C.img;
+img.onload=()=>{
+  // placeCar()
+  const asp=img.naturalHeight/img.naturalWidth; let w=vw*0.92,h=w*asp; if(h>vh*0.62){h=vh*0.62;w=h/asp}
+  const left=(vw-w)/2, top=vh*0.80-h;
+  // RoadHudView
+  const g=cv.getContext('2d');g.scale(2,2);
+  const ax=.966,ay=-.257,bx=.988,by=.154,k=w/735,p0x=left+C.anchor[0]*w,p0y=top+C.anchor[1]*h, dist=37*k;
+  function L(px,py,dx,dy,a0,a1){g.beginPath();g.moveTo(px+dx*a0,py+dy*a0);g.lineTo(px+dx*a1,py+dy*a1);g.stroke()}
+  const far=1600*k,cell=40*k; g.lineCap='round';
+  g.strokeStyle=p.grid;g.lineWidth=Math.max(1,1.1*k);
+  for(let j=-30;j<=30;j++)L(p0x+j*cell*bx,p0y+j*cell*by,ax,ay,-far,far);
+  for(let j=-40;j<=40;j++){const t=j*cell+dist%cell;L(p0x+t*ax,p0y+t*ay,bx,by,-far,far)}
+  for(const lat of [60,-350]){const x=p0x+lat*k*bx,y=p0y+lat*k*by;
+    if(p.glow){g.strokeStyle=p.lane;g.globalAlpha=.25;g.lineWidth=14*k;L(x,y,ax,ay,-far,far);g.globalAlpha=1}
+    g.strokeStyle=p.lane;g.lineWidth=4*k;L(x,y,ax,ay,-far,far)}
+  const per=120*k,ds=(dist*1.6)%per;g.strokeStyle=p.dash;g.lineWidth=5*k;
+  for(const lat of [190,-560])for(let j=-12;j<=12;j++){const t=j*per+ds;L(p0x+lat*k*bx+t*ax,p0y+lat*k*by+t*ay,ax,ay,0,55*k)}
+  const ap=260*k,ao=(dist*3.2)%ap;g.fillStyle=p.dash;
+  for(let j=-4;j<=4;j++){const t=j*ap+ao,cx=p0x+330*k*bx+t*ax,cy=p0y+330*k*by+t*ay;g.beginPath();
+    g.moveTo(cx-38*k*ax,cy-38*k*ay);g.lineTo(cx+20*k*ax-26*k*bx,cy+20*k*ay-26*k*by);g.lineTo(cx,cy);g.lineTo(cx+20*k*ax+26*k*bx,cy+20*k*ay+26*k*by);g.closePath();g.fill()}
+  // fade (DST_IN radial)
+  const fx=p0x+21*k,fy=p0y+22*k,rx=600*k,ry=260*k;g.globalCompositeOperation='destination-in';
+  g.save();g.translate(fx,fy);g.rotate(-8*Math.PI/180);g.scale(1,ry/rx);
+  const gr=g.createRadialGradient(0,0,0,0,0,rx);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.35,'rgba(0,0,0,1)');gr.addColorStop(.7,'rgba(0,0,0,.38)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=gr;g.fillRect(-rx*3,-rx*3,rx*6,rx*6);g.restore();g.globalCompositeOperation='source-over';
+  const ci=document.createElement('img');ci.src=C.img;ci.style.cssText=`position:absolute;left:${left}px;top:${top}px;width:${w}px;height:${h}px`;vp.appendChild(ci);
+  window.done=true;
+};
+vp.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:20px;top:14px;font-size:26px;font-weight:300;color:${p.text};z-index:2">10:30</div>
+<div style="position:absolute;right:16px;top:20px;font-size:12px;color:${p.muted};z-index:2"><span style="color:${p.accent2}">●</span> OBD2 · USB · OBDLink EX</div>`);
+// mapa
+const mx=gV+0, mw=W-gap-mx;
+const mc=el('div',`left:${mx}px;top:${gap}px;width:${mw}px;height:${gM-gap-gap}px;background:${p.card};border-color:${p.stroke}`);mc.className='card';
+mc.innerHTML=`<div style="margin:14px;font-size:15px;font-weight:700;color:${p.text}">Navegación</div><div style="position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:${p.muted}">Mapa en vivo (siguiente módulo)</div>`;
+// música
+const bh=gap+ih-gM;
+const md=el('div',`left:${mx}px;top:${gM}px;width:${gMe-gap-mx}px;height:${bh}px;background:${p.card};border-color:${p.stroke};padding:14px`);md.className='card';
+md.innerHTML=`<div style="width:54px;height:54px;border-radius:8px;background:linear-gradient(135deg,${p.accent2},${p.accent})"></div>
+<div style="margin-top:8px;font-size:15px;font-weight:700;color:${p.text}">Sin música</div><div style="font-size:12px;color:${p.muted}">&nbsp;</div>
+<div style="position:absolute;left:14px;right:14px;bottom:12px;display:flex;justify-content:space-around;color:${p.text};font-size:18px">⏮ ▶ ⏭</div>`;
+// velocímetro
+const sp=el('div',`left:${gMe}px;top:${gM}px;width:${W-gap-gMe}px;height:${bh}px;background:${p.card};border-color:${p.stroke};padding:12px;text-align:center`);sp.className='card';
+sp.innerHTML=`<div class="mono" style="font-size:70px;font-weight:100;line-height:1.15;color:${p.text}">35</div>
+<div style="font-size:12px;letter-spacing:2px;color:${p.muted}">MPH</div>
+<div style="height:6px;border-radius:3px;background:${p.stroke};margin-top:10px;overflow:hidden"><div style="width:26%;height:100%;background:${p.accent2}"></div></div>
+<div style="font-size:11px;color:${p.muted};margin-top:2px">1820 RPM</div>
+<div style="font-size:12px;color:${p.muted};margin-top:6px">Motor 194 °F</div><div style="font-size:12px;color:${p.muted}">Batería 13.8 V</div>`;
+</script></body></html>
