@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Superposición sobre la carretera: oscurece las orillas para que el auto y el horizonte
+     queden al centro de atención y el viewport se funda con el fondo negro de la pantalla. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:centerColor="#0007090D"
+        android:endColor="#B307090D"
+        android:gradientRadius="75%p"
+        android:type="radial"
+        android:centerX="0.5"
+        android:centerY="0.55"
+        android:startColor="#0007090D" />
+</shape>

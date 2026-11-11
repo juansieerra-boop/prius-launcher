@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tarjeta glassmorphism para los widgets (modo noche):
+     carbón translúcido 80 %, borde 1.5dp azul acero, brillo de vidrio arriba y resplandor cian abajo.
+     (Los <shape> no admiten trazo con degradado; el paso #334A60 → #1B2430 se logra con el borde
+     sólido + la capa de brillo que se desvanece hacia abajo.) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- cuerpo -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="22dp" />
+            <solid android:color="#CC1A1E29" />
+            <stroke android:width="1.5dp" android:color="#334A60" />
+        </shape>
+    </item>
+    <!-- brillo de vidrio en la parte de arriba -->
+    <item android:left="1.5dp" android:right="1.5dp" android:top="1.5dp" android:bottom="1.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="21dp" />
+            <gradient
+                android:angle="270"
+                android:centerColor="#05FFFFFF"
+                android:centerY="0.35"
+                android:endColor="#00FFFFFF"
+                android:startColor="#1AFFFFFF" />
+        </shape>
+    </item>
+    <!-- resplandor cian tenue en la orilla de abajo -->
+    <item android:left="1.5dp" android:right="1.5dp" android:top="1.5dp" android:bottom="1.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="21dp" />
+            <gradient
+                android:angle="90"
+                android:centerColor="#0022D3EE"
+                android:centerY="0.12"
+                android:endColor="#0022D3EE"
+                android:startColor="#1F22D3EE" />
+        </shape>
+    </item>
+    <!-- línea interior oscura: completa el degradado del borde hacia #1B2430 -->
+    <item android:left="1.5dp" android:right="1.5dp" android:top="1.5dp" android:bottom="1.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="21dp" />
+            <stroke android:width="1dp" android:color="#661B2430" />
+        </shape>
+    </item>
+</layer-list>

@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 55 % vehículo multicapa | 45 % widgets (mapa arriba; música y velocímetro abajo).
-     Porcentajes con Guidelines: se adapta a 1024x600, 1280x720 y 1920x1080 sin layouts distintos. -->
+<!--
+  CarGo · pantalla de inicio
+    Dock (negro mate, borde a borde) | 55 % viewport del vehículo (carretera + auto, sin barras encima)
+    | 45 % widgets glassmorphism: mapa arriba; música y velocímetro circular abajo.
+  Proporciones con Guidelines: funciona igual en 1024x600, 1280x720 y 1920x1080.
+  La telemetría (RPM, motor, batería) vive dentro de la tarjeta del velocímetro, no sobre el auto.
+-->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/gap">
+    android:background="#FF07090D">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/gVehicle"
@@ -29,15 +34,16 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.775" />
 
-    <!-- ===== Barra lateral: CarPlay (ZLink) y logo del instalador ===== -->
+    <!-- ===== Dock: negro mate continuo, iconos vectoriales sin cajas de color ===== -->
     <LinearLayout
         android:id="@+id/sideBar"
         android:layout_width="@dimen/side"
         android:layout_height="0dp"
+        android:background="@drawable/bg_dock"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:paddingTop="14dp"
-        android:paddingBottom="10dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="14dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -52,22 +58,21 @@
             android:focusable="true"
             android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp">
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
 
             <ImageView
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/carplay_bg"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:importantForAccessibility="no"
-                android:padding="9dp"
-                android:src="@drawable/ic_carplay" />
+                android:src="@drawable/ic_carplay"
+                android:tint="#FF22D3EE" />
 
             <TextView
                 android:id="@+id/carPlayLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="4dp"
                 android:text="@string/carplay"
                 android:textSize="10sp" />
         </LinearLayout>
@@ -79,32 +84,32 @@
 
         <ImageView
             android:id="@+id/dockLogo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:alpha="0.85"
             android:contentDescription="@string/app_name"
             android:padding="2dp"
             android:src="@drawable/ic_cargo" />
     </LinearLayout>
 
-    <!-- ===== Vehículo: carretera HUD + carro ===== -->
+    <!-- ===== Vehículo: carretera en perspectiva + auto, a todo lo alto y sin marco ===== -->
     <FrameLayout
         android:id="@+id/vehiclePanel"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="@dimen/gap"
         android:layout_marginEnd="@dimen/gap"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/gVehicle"
         app:layout_constraintStart_toEndOf="@id/sideBar"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Viewport 3D: escenario + carretera en perspectiva + sombra/reflejo + auto + faros.
-             Se usa con los autos de fábrica; con la foto del cliente se usan roadView/carImage. -->
+        <!-- ivRoadBackground / ivHeadlightBeam / ivCarShadow / ivVehicleModel (ver el layout incluido) -->
         <include
             layout="@layout/view_vehicle_viewport"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <!-- Capas anteriores: solo para la foto del cliente y las vistas Rayos X / Alambre -->
         <com.cargo.launcher.RoadHudView
             android:id="@+id/roadView"
             android:layout_width="match_parent"
@@ -133,21 +138,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|end"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="18dp"
             android:layout_marginEnd="16dp"
+            android:ellipsize="end"
             android:maxWidth="260dp"
             android:singleLine="true"
-            android:ellipsize="end"
             android:textSize="12sp" />
-
     </FrameLayout>
 
-    <!-- ===== Mapa ===== -->
+    <!-- ===== Mapa (arriba, 52 % del alto) ===== -->
     <FrameLayout
         android:id="@+id/mapCard"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="@dimen/gap"
+        android:layout_marginTop="@dimen/gap"
+        android:layout_marginEnd="@dimen/gap"
+        android:layout_marginBottom="@dimen/gap_half"
+        android:background="@drawable/bg_card_glass"
         app:layout_constraintBottom_toTopOf="@id/gMap"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/gVehicle"
@@ -162,7 +169,7 @@
             android:id="@+id/mapTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="14dp"
+            android:layout_margin="16dp"
             android:text="@string/nav"
             android:textSize="15sp"
             android:textStyle="bold" />
@@ -176,14 +183,18 @@
             android:textSize="13sp" />
     </FrameLayout>
 
-    <!-- ===== Música ===== -->
+    <!-- ===== Música (abajo izquierda) ===== -->
     <LinearLayout
         android:id="@+id/mediaCard"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginEnd="@dimen/gap"
+        android:layout_marginTop="@dimen/gap_half"
+        android:layout_marginEnd="@dimen/gap_half"
+        android:layout_marginBottom="@dimen/gap"
+        android:background="@drawable/bg_card_glass"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="14dp"
+        android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/gMedia"
         app:layout_constraintStart_toEndOf="@id/gVehicle"
@@ -201,8 +212,9 @@
             android:id="@+id/trackTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:ellipsize="end"
+            android:gravity="center_horizontal"
             android:singleLine="true"
             android:text="@string/no_music"
             android:textSize="15sp"
@@ -213,6 +225,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
+            android:gravity="center_horizontal"
             android:singleLine="true"
             android:textSize="12sp" />
 
@@ -223,7 +236,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="44dp"
             android:orientation="horizontal">
 
             <ImageButton
@@ -246,11 +259,16 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- ===== Velocímetro digital + telemetría OBD2 ===== -->
+    <!-- ===== Velocímetro circular + telemetría OBD2 (abajo derecha) ===== -->
     <LinearLayout
         android:id="@+id/speedCard"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="@dimen/gap_half"
+        android:layout_marginTop="@dimen/gap_half"
+        android:layout_marginEnd="@dimen/gap"
+        android:layout_marginBottom="@dimen/gap"
+        android:background="@drawable/bg_card_glass"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:padding="12dp"
@@ -259,52 +277,82 @@
         app:layout_constraintStart_toEndOf="@id/gMedia"
         app:layout_constraintTop_toBottomOf="@id/gMap">
 
-        <TextView
-            android:id="@+id/speedValue"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:autoSizeMaxTextSize="96sp"
-            android:autoSizeMinTextSize="24sp"
-            android:autoSizeTextType="uniform"
-            android:fontFamily="sans-serif-thin"
-            android:gravity="center"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:text="@string/no_value" />
+            android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/speedUnit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:letterSpacing="0.15"
-            android:textSize="12sp" />
+            <com.cargo.launcher.SpeedGaugeView
+                android:id="@+id/speedGauge"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/speedValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-light"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="@string/no_value"
+                    android:textSize="@dimen/speed" />
+
+                <TextView
+                    android:id="@+id/speedUnit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.15"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </FrameLayout>
 
         <ProgressBar
             android:id="@+id/rpmBar"
             style="@android:style/Widget.Material.ProgressBar.Horizontal"
             android:layout_width="match_parent"
-            android:layout_height="6dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="6dp"
             android:max="7000" />
 
-        <TextView
-            android:id="@+id/rpmText"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="11sp" />
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/coolantText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="12sp" />
+            <TextView
+                android:id="@+id/rpmText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:singleLine="true"
+                android:textSize="10sp" />
 
-        <TextView
-            android:id="@+id/voltText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="12sp" />
+            <TextView
+                android:id="@+id/coolantText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:singleLine="true"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/voltText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:singleLine="true"
+                android:textSize="10sp" />
+        </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

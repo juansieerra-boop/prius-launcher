@@ -1,5 +1,7 @@
 <resources>
     <dimen name="gap">8dp</dimen>
+    <dimen name="gap_half">4dp</dimen>
+    <dimen name="speed">40sp</dimen>
     <dimen name="clock">26sp</dimen>
     <dimen name="art">54dp</dimen>
     <dimen name="side">64dp</dimen>

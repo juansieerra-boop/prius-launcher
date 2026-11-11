@@ -18,11 +18,17 @@ import kotlin.math.sin
  * Haces de luz cónicos de los faros sobre el asfalto + destello de faros, niebla y calaveras.
  * Las posiciones llegan en px de esta vista desde VehicleViewport (ya convertidas desde el dibujo
  * del auto), así que siempre coinciden con los faros aunque cambie el tamaño de la pantalla.
- * La visibilidad / alpha la anima VehicleViewport (solo modo noche).
+ * La visibilidad / alpha la anima VehicleViewport (solo modo noche). Se usan dos instancias:
+ * una con los conos debajo del auto y otra con los destellos encima.
  */
 class HeadlightBeamView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
 
     class Lamp(val x: Float, val y: Float, val r: Float)
+
+    /** CONES: conos sobre el asfalto (capa debajo del auto). FLARES: destello de los focos (encima). */
+    enum class Layer { CONES, FLARES }
+    var layer = Layer.CONES
+        set(v) { field = v; invalidate() }
 
     private var heads: List<Lamp> = emptyList()
     private var fogs: List<Lamp> = emptyList()
@@ -67,8 +73,11 @@ class HeadlightBeamView @JvmOverloads constructor(ctx: Context, attrs: Attribute
     }
 
     override fun onDraw(c: Canvas) {
-        heads.forEach { cone(c, it, reach, 16f, 95) }
-        fogs.forEach { cone(c, it, reach * 0.55f, 24f, 60) }
+        if (layer == Layer.CONES) {
+            heads.forEach { cone(c, it, reach, 16f, 95) }
+            fogs.forEach { cone(c, it, reach * 0.55f, 24f, 60) }
+            return
+        }
         heads.forEach { flare(c, it, 3.2f, Color.argb(235, 255, 255, 255)) }
         fogs.forEach { flare(c, it, 3f, Color.argb(200, 255, 250, 235)) }
         tails.forEach { flare(c, it, 4f, Color.argb(200, 255, 40, 50)) }

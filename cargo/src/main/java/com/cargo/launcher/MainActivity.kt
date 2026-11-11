@@ -56,6 +56,7 @@ class MainActivity : Activity() {
         private const val TAPS_TO_OPEN = 5
         private const val TAP_WINDOW_MS = 2500L
         private const val MAX_CAR_WIDTH_PX = 1600
+        private const val GLASS_BG = 0xFF07090D.toInt()
     }
 
     private val ui: CoroutineScope = MainScope()
@@ -72,6 +73,7 @@ class MainActivity : Activity() {
     private lateinit var dockLogo: ImageView
     private lateinit var speedValue: TextView
     private lateinit var speedUnit: TextView
+    private lateinit var speedGauge: SpeedGaugeView
     private lateinit var rpmBar: ProgressBar
     private lateinit var rpmText: TextView
     private lateinit var coolantText: TextView
@@ -183,7 +185,8 @@ class MainActivity : Activity() {
         vehiclePanel = findViewById(R.id.vehiclePanel)
         roadView = findViewById(R.id.roadView)
         carImage = findViewById(R.id.carImage)
-        viewport = findViewById(R.id.vehicleViewport)
+        viewport = findViewById(R.id.vehicleViewportContainer)
+        speedGauge = findViewById(R.id.speedGauge)
         obdStatus = findViewById(R.id.obdStatus)
         dockLogo = findViewById(R.id.dockLogo)
         speedValue = findViewById(R.id.speedValue)
@@ -210,16 +213,26 @@ class MainActivity : Activity() {
         val pal = VehicleAssets.palette(v, theme)
 
         // Colores sin recrear la Activity
-        root.setBackgroundColor(pal.bg)
+        val glass = theme == ThemeMode.NIGHT
+        root.setBackgroundColor(if (glass) GLASS_BG else pal.bg)
         val r = resources.displayMetrics.density * 22f
         for ((i, card) in cards.withIndex()) {
-            card.background = GradientDrawable().apply {
-                cornerRadius = r
-                setColor(if (i == 0) pal.panel else pal.card)
-                setStroke((resources.displayMetrics.density).roundToInt(), pal.stroke)
+            when {
+                // Noche: viewport sin marco, dock negro mate y widgets glassmorphism
+                glass && i == 0 -> card.background = null
+                glass && i == 1 -> card.setBackgroundResource(R.drawable.bg_dock)
+                glass -> card.setBackgroundResource(R.drawable.bg_card_glass)
+                else -> card.background = GradientDrawable().apply {
+                    cornerRadius = r
+                    setColor(if (i == 0) pal.panel else pal.card)
+                    setStroke((resources.displayMetrics.density).roundToInt(), pal.stroke)
+                }
             }
-            card.clipToOutline = true
+            card.clipToOutline = !(glass && i <= 1)
         }
+        val gaugeAccent = if (glass) VehicleViewport.NIGHT_TINT else pal.accent2
+        speedGauge.setColors(gaugeAccent, if (glass) 0xFF0EA5B7.toInt() else pal.accent, pal.stroke, pal.muted)
+        speedGauge.maxValue = if (CarGoPrefs.useMph) 80f else 140f
         textMain.forEach { it.setTextColor(pal.text) }
         textMuted.forEach { it.setTextColor(pal.muted) }
         rpmBar.progressTintList = ColorStateList.valueOf(pal.accent2)
@@ -309,7 +322,9 @@ class MainActivity : Activity() {
     private fun showTelemetry(s: ObdState) {
         val mph = CarGoPrefs.useMph
         val kmh = s.speedKmh
-        speedValue.text = if (kmh == null) getString(R.string.no_value) else (if (mph) kmh * 0.621371f else kmh.toFloat()).roundToInt().toString()
+        val shownSpeed = kmh?.let { if (mph) it * 0.621371f else it.toFloat() }
+        speedValue.text = shownSpeed?.roundToInt()?.toString() ?: getString(R.string.no_value)
+        speedGauge.setValue(shownSpeed ?: 0f)
         val speedMph = kmh?.let { it * 0.621371f } ?: 0f
         roadView.setSpeedMph(speedMph)
         if (viewportActive) viewport.setSpeedMph(speedMph)
