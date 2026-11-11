@@ -44,10 +44,13 @@
     <application
         android:name=".CarGoApp"
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/no_backup"
+        tools:targetApi="s"
         android:icon="@drawable/ic_cargo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:resizeableActivity="false"
+        tools:ignore="DiscouragedApi"
         android:theme="@style/Theme.CarGo">
 
         <activity
@@ -59,6 +62,7 @@
             android:excludeFromRecents="true"
             android:resumeWhilePausing="true"
             android:screenOrientation="sensorLandscape"
+            tools:ignore="DiscouragedApi"
             android:windowSoftInputMode="adjustNothing"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density|keyboard|keyboardHidden|navigation">
 
@@ -93,13 +97,16 @@
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
 
+        <!-- Encendido: estándar + variantes de fabricante (MTK IPO, Microntek/MTC) -->
         <receiver
             android:name=".BootReceiver"
             android:exported="true">
-            <intent-filter>
+            <intent-filter android:priority="999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.BOOT_IPO_COMPLETED" />
+                <action android:name="com.microntek.bootcheck" />
             </intent-filter>
         </receiver>
     </application>

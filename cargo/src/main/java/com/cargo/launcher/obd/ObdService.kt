@@ -105,6 +105,7 @@ class ObdService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag") // en API < 33 no existe la bandera; la acción es propia del paquete
     override fun onCreate() {
         super.onCreate()
         val f = IntentFilter().apply {

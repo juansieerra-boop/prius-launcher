@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId = "com.cargo.launcher"
         minSdk = 28          // Android 9 (Pie), como el estéreo del Prius
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }
@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("com.github.mik3y:usb-serial-for-android:3.8.1")
 }

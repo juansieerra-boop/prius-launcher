@@ -150,10 +150,8 @@ class MainActivity : Activity() {
                 if (vis and View.SYSTEM_UI_FLAG_FULLSCREEN == 0) root.postDelayed({ enterImmersive() }, 2000)
             }
         }
-        if (Build.VERSION.SDK_INT >= 28) {
-            window.attributes = window.attributes.apply {
-                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            }
+        window.attributes = window.attributes.apply {
+            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
     }
 
@@ -262,12 +260,12 @@ class MainActivity : Activity() {
     private fun showTelemetry(s: ObdState) {
         val mph = CarGoPrefs.useMph
         val kmh = s.speedKmh
-        speedValue.text = if (kmh == null) "--" else (if (mph) kmh * 0.621371f else kmh.toFloat()).roundToInt().toString()
+        speedValue.text = if (kmh == null) getString(R.string.no_value) else (if (mph) kmh * 0.621371f else kmh.toFloat()).roundToInt().toString()
         roadView.setSpeedMph(kmh?.let { it * 0.621371f } ?: 0f)
 
         val rpm = s.rpm
         rpmBar.progress = rpm ?: 0
-        rpmText.text = getString(R.string.rpm_fmt, rpm?.toString() ?: "--")
+        rpmText.text = getString(R.string.rpm_fmt, rpm?.toString() ?: getString(R.string.no_value))
         coolantText.text = s.coolantC?.let {
             if (mph) getString(R.string.temp_f, (it * 9 / 5 + 32)) else getString(R.string.temp_c, it)
         } ?: getString(R.string.temp_none)
