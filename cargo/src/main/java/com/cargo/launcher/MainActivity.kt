@@ -173,8 +173,10 @@ class MainActivity : Activity() {
                 if (vis and View.SYSTEM_UI_FLAG_FULLSCREEN == 0) root.postDelayed({ enterImmersive() }, 2000)
             }
         }
-        window.attributes = window.attributes.apply {
-            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        if (Build.VERSION.SDK_INT >= 28) {   // la pantalla del Jeep es Android 8.1 (API 27)
+            window.attributes = window.attributes.apply {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
         }
     }
 

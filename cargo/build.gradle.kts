@@ -27,6 +27,7 @@ android {
         create("jeep") {
             dimension = "car"
             applicationIdSuffix = ".jeep"
+            minSdk = 27      // pantalla del Jeep: Android 8.1 real (API 27), 1280x720, armeabi-v7a
             buildConfigField("String", "DEFAULT_VEHICLE", "\"JEEP_SAHARA_2021\"")
         }
     }

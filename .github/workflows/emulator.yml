@@ -9,6 +9,18 @@ jobs:
   emulator:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Cada carro con la versión de Android y la resolución REALES de su pantalla
+          - flavor: prius
+            api: 28
+            size: 1024x600
+          - flavor: jeep
+            api: 27
+            size: 1280x720
+    name: ${{ matrix.flavor }} (API ${{ matrix.api }}, ${{ matrix.size }})
     steps:
       - uses: actions/checkout@v5
 
@@ -19,10 +31,10 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Compilar APKs
+      - name: Compilar APK
         run: |
           chmod +x gradlew
-          ./gradlew :cargo:assemblePriusDebug :cargo:assembleJeepDebug :diag:assembleDebug --no-daemon
+          ./gradlew :cargo:assemble${{ matrix.flavor == 'prius' && 'Prius' || 'Jeep' }}Debug --no-daemon
 
       - name: Habilitar KVM
         run: |
@@ -30,12 +42,12 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Emulador Android 9 (1024x600) · instalar y abrir
+      - name: Emulador · instalar y abrir
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 28
-          arch: x86_64
+          api-level: ${{ matrix.api }}
+          arch: x86
           target: default
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash .github/scripts/emu_test.sh
+          script: bash .github/scripts/emu_test.sh ${{ matrix.flavor }} ${{ matrix.size }}
