@@ -17,21 +17,18 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Compilar CarGo (rama cargo-core)
+      - name: Compilar CarGO v4 (Prius) y revisar que el Jeep siga compilando
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
           chmod +x gradlew
-          ./gradlew :cargo:assembleDebug :cargo:assembleRelease :cargo:lintPriusDebug :cargo:lintJeepDebug --no-daemon || (cat cargo/build/lint.txt; exit 1)
+          ./gradlew :app:assemblePriusRelease :app:assembleJeepRelease :app:lintPriusRelease --no-daemon
 
-      - name: Resultado de lint CarGo
+      - name: Resultado de lint
         if: always()
-        run: cat cargo/build/lint.txt || true
+        run: cat app/build/lint.txt || true
 
       - uses: actions/upload-artifact@v4
         with:
-          name: CarGo-Prius-apk
-          path: cargo/build/outputs/apk/prius/debug/*.apk
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: CarGo-Jeep-apk
-          path: cargo/build/outputs/apk/jeep/debug/*.apk
+          name: CarGO-v4-Prius-apk
+          path: app/build/outputs/apk/prius/release/*.apk

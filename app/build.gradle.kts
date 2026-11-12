@@ -30,6 +30,9 @@ android {
         create("prius") {
             dimension = "carro"
             applicationId = "com.juandiego.priuslauncher"
+            // CarGO v4 (pantalla nueva); el Jeep se queda en la versión 3
+            versionCode = 4
+            versionName = "4.0"
         }
         create("jeep") {
             dimension = "carro"

@@ -3,7 +3,7 @@ name: Probar en emulador
 on:
   workflow_dispatch:
   push:
-    branches: [cargo-core]
+    branches: [v4-cargo]
 
 jobs:
   emulator:
@@ -12,14 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Cada carro con la versión de Android y la resolución REALES de su pantalla
-          # app = launcher aprobado (PriusLauncher) · cargo = producto comercial CarGo
-          - { module: app,   flavor: prius, task: PriusRelease, api: 28, size: 1024x600, pkg: com.juandiego.priuslauncher, act: com.juandiego.priuslauncher.MainActivity }
-          - { module: app,   flavor: jeep,  task: JeepRelease, api: 27, size: 1280x720, pkg: com.juandiego.jeeplauncher,  act: com.juandiego.priuslauncher.MainActivity }
-          - { module: cargo, flavor: prius, task: PriusDebug, api: 28, size: 1024x600, pkg: com.cargo.launcher.prius,    act: com.cargo.launcher.MainActivity }
-          - { module: cargo, flavor: jeep,  task: JeepDebug,  api: 27, size: 1280x720, pkg: com.cargo.launcher.jeep,     act: com.cargo.launcher.MainActivity }
-    name: ${{ matrix.module }} ${{ matrix.flavor }} (API ${{ matrix.api }}, ${{ matrix.size }})
+        # La pantalla del Prius es Android 9 (API 28); se prueba en las dos resoluciones que reporta
+        size: [1024x600, 1280x720]
+    name: CarGO v4 Prius (API 28, ${{ matrix.size }})
     steps:
       - uses: actions/checkout@v5
 
@@ -32,10 +27,10 @@ jobs:
 
       - name: Compilar APK
         env:
-          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}   # igual que la versión aprobada
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
           chmod +x gradlew
-          ./gradlew :${{ matrix.module }}:assemble${{ matrix.task }} --no-daemon
+          ./gradlew :app:assemblePriusRelease --no-daemon
 
       - name: Habilitar KVM
         run: |
@@ -43,12 +38,12 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Emulador · instalar y abrir
+      - name: Emulador · instalar, abrir y probar
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: ${{ matrix.api }}
+          api-level: 28
           arch: x86
           target: default
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.size }}
-          script: bash .github/scripts/emu_test.sh ${{ matrix.module }} ${{ matrix.flavor }} ${{ matrix.size }} ${{ matrix.pkg }} ${{ matrix.act }}
+          script: bash .github/scripts/emu_v4.sh ${{ matrix.size }}
