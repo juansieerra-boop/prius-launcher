@@ -66,4 +66,6 @@
     <string name="v4_dir_sw">SW</string>
     <string name="v4_dir_w">W</string>
     <string name="v4_dir_nw">NW</string>
+    <string name="v4_phone">Phone</string>
+    <string name="v4_music">Music</string>
 </resources>

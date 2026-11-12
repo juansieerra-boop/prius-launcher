@@ -504,7 +504,7 @@ class SwapCard(
                 }
                 iconView.clipToOutline = true
                 cell.addView(iconView, LinearLayout.LayoutParams(u.i(46f), u.i(46f)))
-                cell.addView(u.text(10f, 500, u.pal.sub, DockSlots.labelFor(act, prefs, slot)).apply { gravity = Gravity.CENTER },
+                cell.addView(u.text(10f, 500, u.pal.sub, appLabel(prefs, slot, intent)).apply { gravity = Gravity.CENTER },
                     LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = u.i(5f) })
                 cell.setOnClickListener {
                     if (editing) return@setOnClickListener
@@ -520,6 +520,24 @@ class SwapCard(
             })
         }
         content.addView(grid, lpTopFull(u, 14f, 52f + oy, -1f))
+    }
+
+    /** Nombre de la app instalada; si no hay, un nombre corto del botón. */
+    private fun appLabel(prefs: android.content.SharedPreferences, slot: Int, intent: Intent?): String {
+        if (prefs.contains(DockSlots.key(slot))) return DockSlots.labelFor(act, prefs, slot)
+        val pkg = intent?.component?.packageName ?: intent?.`package`
+        if (pkg != null) {
+            try {
+                return act.packageManager.getApplicationLabel(act.packageManager.getApplicationInfo(pkg, 0)).toString()
+            } catch (e: Exception) {
+                // sigue con el nombre del botón
+            }
+        }
+        return when (slot) {
+            DockSlots.PHONE -> act.getString(R.string.v4_phone)
+            DockSlots.MUSIC -> act.getString(R.string.v4_music)
+            else -> DockSlots.labelFor(act, prefs, slot)
+        }
     }
 
     private fun pick(slot: Int) {
@@ -570,13 +588,21 @@ class SwapCard(
         speed?.mps = mps
     }
 
-    fun setBearing(b: Float) {
+    private var headingKnown = false
+
+    /** known = el carro ya se movió (con el carro parado el GPS no da rumbo real). */
+    fun setBearing(b: Float, known: Boolean) {
         lastBearing = b
+        headingKnown = known
         compass?.bearing = b
         headText?.let { setHeading(it, b) }
     }
 
     private fun setHeading(t: TextView, b: Float) {
+        if (!headingKnown) {
+            t.text = "—"
+            return
+        }
         val sp = android.text.SpannableStringBuilder(cardinal(u.ctx, b))
         val start = sp.length
         sp.append(" · ${((b % 360f + 360f) % 360f).roundToInt()}°")

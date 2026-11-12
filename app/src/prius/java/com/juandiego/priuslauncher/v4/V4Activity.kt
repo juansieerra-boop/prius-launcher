@@ -704,8 +704,8 @@ class V4Activity : Activity(), SettingsHost {
         if (moving) movingAt = SystemClock.elapsedRealtime()
         mapCard?.setLocation(loc.latitude, loc.longitude, if (loc.hasBearing() && moving) loc.bearing else null)
         mapCard?.located = true
-        swap?.setBearing(bearing)
-        center?.swap?.setBearing(bearing)
+        swap?.setBearing(bearing, movingAt > 0)
+        center?.swap?.setBearing(bearing, movingAt > 0)
         Weather.update(this, loc)
         Forecast.update(this, loc)
         geocode(loc)
