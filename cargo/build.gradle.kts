@@ -27,6 +27,7 @@ android {
         create("jeep") {
             dimension = "car"
             applicationIdSuffix = ".jeep"
+            minSdk = 21      // la pantalla del Jeep trae un Android más viejo que el Prius
             buildConfigField("String", "DEFAULT_VEHICLE", "\"JEEP_SAHARA_2021\"")
         }
     }

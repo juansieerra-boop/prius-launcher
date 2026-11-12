@@ -81,7 +81,7 @@ class ObdService : Service() {
         fun start(c: Context) {
             val i = Intent(c, ObdService::class.java)
             try {
-                c.startForegroundService(i)
+                if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(i) else c.startService(i)
             } catch (e: Exception) {
                 Log.w(TAG, "No se pudo iniciar el servicio OBD", e)
             }
@@ -273,13 +273,16 @@ class ObdService : Service() {
 
     private fun goForeground(text: String) {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        if (nm.getNotificationChannel(CHANNEL) == null) {
+        if (Build.VERSION.SDK_INT >= 26 && nm.getNotificationChannel(CHANNEL) == null) {
             nm.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.obd_channel), NotificationManager.IMPORTANCE_MIN))
         }
+        val immutable = if (Build.VERSION.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0
         val open = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            this, 0, Intent(this, MainActivity::class.java), immutable or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        val n: Notification = Notification.Builder(this, CHANNEL)
+        val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL)
+        else @Suppress("DEPRECATION") Notification.Builder(this).setPriority(Notification.PRIORITY_MIN)
+        val n: Notification = builder
             .setSmallIcon(R.drawable.ic_obd)
             .setContentTitle(getString(R.string.obd_title))
             .setContentText(text)
