@@ -701,7 +701,7 @@ class V4Activity : Activity(), SettingsHost {
         }
         val moving = loc.hasSpeed() && loc.speed > 1.5f
         if (loc.hasBearing() && moving) bearing = loc.bearing
-        if (moving) movingAt = SystemClock.elapsedRealtime()
+        if (moving && loc.hasBearing()) movingAt = SystemClock.elapsedRealtime()
         mapCard?.setLocation(loc.latitude, loc.longitude, if (loc.hasBearing() && moving) loc.bearing else null)
         mapCard?.located = true
         swap?.setBearing(bearing, movingAt > 0)

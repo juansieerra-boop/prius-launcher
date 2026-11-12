@@ -12,6 +12,7 @@
 
         <activity
             android:name="com.juandiego.priuslauncher.v4.V4Activity"
+            android:label="CarGO"
             android:clearTaskOnLaunch="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density|locale|layoutDirection"
             android:excludeFromRecents="true"
