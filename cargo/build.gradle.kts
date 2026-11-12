@@ -31,8 +31,22 @@ android {
         }
     }
 
+    // Llave fija: cada versión nueva se instala encima de la anterior (sin "App not installed")
+    signingConfigs {
+        create("fija") {
+            storeFile = file("cargo.keystore")
+            storePassword = "priuslauncher"
+            keyAlias = "prius"
+            keyPassword = "priuslauncher"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("fija")
+        }
         release {
+            signingConfig = signingConfigs.getByName("fija")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

@@ -27,4 +27,12 @@ for f in prius jeep; do
   echo "===== $f: SHOT_END"
   adb shell am force-stop "$pkg"
 done
+# Los mismos APK que se acaban de probar, para entregarlos tal cual
+for f in prius jeep; do
+  apk=$(ls cargo/build/outputs/apk/$f/debug/*.apk | head -1)
+  echo "===== $f: APK_SHA256 $(sha256sum "$apk" | cut -d' ' -f1)"
+  echo "===== $f: APK_BEGIN"
+  base64 -w 3000 "$apk" | sed "s/^/APK:/"
+  echo "===== $f: APK_END"
+done
 exit 0
