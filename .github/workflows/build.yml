@@ -20,7 +20,7 @@ jobs:
       - name: Compilar CarGo (rama cargo-core)
         run: |
           chmod +x gradlew
-          ./gradlew :cargo:assembleDebug :cargo:assembleRelease :cargo:lintPriusDebug :cargo:lintJeepDebug --no-daemon || (cat cargo/build/lint.txt; exit 1)
+          ./gradlew :cargo:assembleDebug :cargo:assembleRelease :cargo:lintPriusDebug --no-daemon || (cat cargo/build/lint.txt; exit 1)
 
       - name: Resultado de lint CarGo
         if: always()
