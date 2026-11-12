@@ -195,7 +195,7 @@ class MainActivity : Activity() {
         rpmText = findViewById(R.id.rpmText)
         coolantText = findViewById(R.id.coolantText)
         voltText = findViewById(R.id.voltText)
-        cards += listOf(vehiclePanel, findViewById(R.id.sideBar), findViewById(R.id.mapCard), findViewById(R.id.mediaCard), findViewById(R.id.speedCard))
+        cards += listOf<View>(vehiclePanel, findViewById(R.id.sideBar), findViewById(R.id.mapCard), findViewById(R.id.mediaCard), findViewById(R.id.speedCard))
         textMain += listOf<TextView>(speedValue, findViewById(R.id.clock), findViewById(R.id.trackTitle), findViewById(R.id.mapTitle))
         textMuted += listOf<TextView>(findViewById(R.id.carPlayLabel), speedUnit, rpmText, coolantText, voltText, obdStatus, findViewById(R.id.trackArtist), findViewById(R.id.mapHint))
 

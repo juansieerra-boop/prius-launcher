@@ -22,7 +22,7 @@ for f in prius jeep; do
   [ -n "$pid" ] && adb logcat -d -v brief --pid="$pid" | grep -E " [EW]/" | tail -n 60
   adb exec-out screencap -p > shot_$f.png
   echo "===== $f: SHOT_BEGIN"
-  base64 -w 0 shot_$f.png
+  base64 -w 3000 shot_$f.png | sed "s/^/B64:/"
   echo
   echo "===== $f: SHOT_END"
   adb shell am force-stop "$pkg"
