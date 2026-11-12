@@ -12,9 +12,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # La pantalla del Prius es Android 9 (API 28); se prueba en las dos resoluciones que reporta
-        size: [1024x600, 1280x720]
-    name: CarGO v4 Prius (API 28, ${{ matrix.size }})
+        # Cada carro con la versión de Android real de su pantalla
+        include:
+          - { flavor: prius, task: PriusRelease, api: 28, size: 1024x600 }
+          - { flavor: prius, task: PriusRelease, api: 28, size: 1280x720 }
+          - { flavor: jeep,  task: JeepRelease,  api: 27, size: 1280x720 }
+    name: CarGO v4 ${{ matrix.flavor }} (API ${{ matrix.api }}, ${{ matrix.size }})
     steps:
       - uses: actions/checkout@v5
 
@@ -30,7 +33,7 @@ jobs:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
           chmod +x gradlew
-          ./gradlew :app:assemblePriusRelease --no-daemon
+          ./gradlew :app:assemble${{ matrix.task }} --no-daemon
 
       - name: Habilitar KVM
         run: |
@@ -41,9 +44,9 @@ jobs:
       - name: Emulador · instalar, abrir y probar
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 28
+          api-level: ${{ matrix.api }}
           arch: x86
           target: default
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.size }}
-          script: bash .github/scripts/emu_v4.sh ${{ matrix.size }}
+          script: bash .github/scripts/emu_v4.sh ${{ matrix.size }} ${{ matrix.flavor }}

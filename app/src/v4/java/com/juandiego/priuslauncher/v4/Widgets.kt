@@ -104,6 +104,13 @@ class MapCard(
     var located = false
         set(v) { if (field != v) { field = v; refreshText() } }
 
+    private val go = LinearLayout(u.ctx)
+    private val nav = LinearLayout(u.ctx)
+    private val navIcon = ImageView(u.ctx)
+    private val navTitle = u.text(18f, 700, u.pal.tx, "")
+    private val navSub = u.text(13f, 600, u.pal.sub, "")
+    private var navLine: String? = null
+
     init {
         val holder = FrameLayout(u.ctx)
         addView(holder, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
@@ -114,7 +121,7 @@ class MapCard(
             osm = null
         } else {
             panel = null
-            osm = OsmMapView(u).apply { setOnClickListener { onTapMap() } }
+            osm = OsmMapView(u)
             holder.addView(osm, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
 
@@ -133,22 +140,99 @@ class MapCard(
         loc.addView(city, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = u.i(3f) })
         addView(loc, lpBottom(u, 12f, 66f, -1f))
 
-        val go = LinearLayout(u.ctx)
         go.orientation = LinearLayout.HORIZONTAL
-        go.addView(goButton(u, R.string.v4_waze, 0xFF33CCFF.toInt()) { openNav("com.waze", "Waze") },
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
-        go.addView(goButton(u, R.string.v4_gmaps, 0xFF34A853.toInt()) { openNav("com.google.android.apps.maps", "Google Maps") },
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f).apply { leftMargin = u.i(8f) })
         addView(go, lpBottom(u, 12f, 12f, 44f))
+        buildButtons()
+
+        // navegando: siguiente vuelta (lo que dice la app de mapas en su notificación)
+        nav.orientation = LinearLayout.HORIZONTAL
+        nav.gravity = Gravity.CENTER_VERTICAL
+        nav.background = glassPill(u, 16f)
+        nav.setPadding(u.i(12f), u.i(12f), u.i(12f), u.i(12f))
+        val box = FrameLayout(u.ctx).apply { background = u.round(u.pal.accent, 12f) }
+        navIcon.scaleType = ImageView.ScaleType.FIT_CENTER
+        box.addView(navIcon, FrameLayout.LayoutParams(u.i(28f), u.i(28f), Gravity.CENTER))
+        nav.addView(box, LinearLayout.LayoutParams(u.i(48f), u.i(48f)))
+        val txt = LinearLayout(u.ctx).apply { orientation = LinearLayout.VERTICAL }
+        navTitle.isSingleLine = false
+        navTitle.maxLines = 2
+        txt.addView(navTitle)
+        txt.addView(navSub, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = u.i(2f) })
+        nav.addView(txt, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = u.i(12f) })
+        nav.visibility = View.GONE
+        addView(nav, lpTopFull(u, 12f, 12f, -1f))
     }
 
-    private fun goButton(u: U, label: Int, color: Int, click: () -> Unit): View = LinearLayout(u.ctx).apply {
+    /** Botones de abajo: la app elegida en Ajustes, o Waze y Google Maps. */
+    fun buildButtons() {
+        go.removeAllViews()
+        val choice = V4Prefs.mapApp(act)
+        if (choice.isEmpty()) {
+            go.addView(goButton(u, act.getString(R.string.v4_waze), 0xFF33CCFF.toInt()) { openNav(V4Prefs.MAP_WAZE, "Waze") },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+            go.addView(goButton(u, act.getString(R.string.v4_gmaps), 0xFF34A853.toInt()) { openNav(V4Prefs.MAP_GMAPS, "Google Maps") },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f).apply { leftMargin = u.i(8f) })
+            return
+        }
+        val name = chosenName(choice)
+        val color = when (choice) { V4Prefs.MAP_WAZE -> 0xFF33CCFF.toInt(); V4Prefs.MAP_GMAPS -> 0xFF34A853.toInt(); else -> u.pal.accent }
+        go.addView(goButton(u, act.getString(R.string.v4_open_app, name), color) { openChosen() },
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
+    }
+
+    private fun chosenName(choice: String): String = when (choice) {
+        V4Prefs.MAP_WAZE -> "Waze"
+        V4Prefs.MAP_GMAPS -> "Google Maps"
+        else -> DockSlots.labelFor(act, act.getSharedPreferences(DockSlots.PREFS, Context.MODE_PRIVATE), DockSlots.MAPS)
+    }
+
+    /** Abre la app de mapas elegida (o la primera que haya instalada). */
+    fun openChosen() {
+        val choice = V4Prefs.mapApp(act)
+        when (choice) {
+            "" -> if (!startSafe(act, act.packageManager.getLaunchIntentForPackage(V4Prefs.MAP_GMAPS)?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))) openNav(V4Prefs.MAP_WAZE, "Waze")
+            V4Prefs.MAP_SLOT -> {
+                val i = DockSlots.resolve(act, act.getSharedPreferences(DockSlots.PREFS, Context.MODE_PRIVATE), DockSlots.MAPS)
+                if (!startSafe(act, i)) android.widget.Toast.makeText(act, R.string.v4_cant_open, android.widget.Toast.LENGTH_SHORT).show()
+            }
+            else -> openNav(choice, chosenName(choice))
+        }
+    }
+
+    /** Navegación activa (o null): se muestra arriba del mapa sin abrir otra pantalla. */
+    fun showNav(info: com.juandiego.priuslauncher.NavState.Info?) {
+        if (info == null) {
+            nav.visibility = View.GONE
+            pill.visibility = View.VISIBLE
+            navLine = null
+            refreshText()
+            return
+        }
+        val big = info.title.ifBlank { info.text }
+        val small = if (info.title.isBlank()) "" else info.text
+        navTitle.text = big
+        navSub.text = small
+        navSub.visibility = if (small.isBlank()) View.GONE else View.VISIBLE
+        if (info.icon != null) {
+            navIcon.setImageDrawable(info.icon.constantState?.newDrawable()?.mutate() ?: info.icon)
+            navIcon.setColorFilter(android.graphics.Color.WHITE, android.graphics.PorterDuff.Mode.SRC_IN)
+        } else {
+            navIcon.setImageResource(R.drawable.v4_ic_nav)
+            navIcon.setColorFilter(android.graphics.Color.WHITE)
+        }
+        navLine = info.sub.ifBlank { null }
+        nav.visibility = View.VISIBLE
+        pill.visibility = View.GONE
+        refreshText()
+    }
+
+    private fun goButton(u: U, label: String, color: Int, click: () -> Unit): View = LinearLayout(u.ctx).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER
         background = glassPill(u, 13f)
         addView(View(u.ctx).apply { background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color) } },
             LinearLayout.LayoutParams(u.i(10f), u.i(10f)))
-        addView(u.text(13f, 600, u.pal.tx, u.ctx.getString(label)),
+        addView(u.text(13f, 600, u.pal.tx, label),
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = u.i(8f) })
         setOnClickListener { click() }
     }
@@ -183,8 +267,9 @@ class MapCard(
         } else {
             pillText.text = u.ctx.getString(R.string.v4_nav)
             street.text = st ?: u.ctx.getString(if (located) R.string.v4_here else R.string.v4_locating)
-            city.text = cityLine
-            city.visibility = if (cityLine.isBlank()) View.GONE else View.VISIBLE
+            val line = navLine ?: cityLine
+            city.text = line
+            city.visibility = if (line.isBlank()) View.GONE else View.VISIBLE
         }
     }
 }

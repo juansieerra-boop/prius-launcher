@@ -22,11 +22,16 @@ jobs:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
           chmod +x gradlew
-          ./gradlew :app:assemblePriusRelease :app:assembleJeepRelease :app:lintPriusRelease --no-daemon
+          ./gradlew :app:assemblePriusRelease :app:assembleJeepRelease :app:lintPriusRelease :app:lintJeepRelease --no-daemon
 
       - name: Resultado de lint
         if: always()
         run: cat app/build/lint.txt || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CarGO-v4-Jeep-apk
+          path: app/build/outputs/apk/jeep/release/*.apk
 
       - uses: actions/upload-artifact@v4
         with:

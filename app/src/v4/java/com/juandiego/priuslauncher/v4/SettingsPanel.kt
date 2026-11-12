@@ -116,6 +116,7 @@ interface SettingsHost {
     fun resetLayout()
     fun saved(before: V4Prefs.Draft, after: V4Prefs.Draft)
     fun closeSettings()
+    fun pickMapApp()
 }
 
 /** Ajustes: toda la configuración del launcher en una sola pantalla. */
@@ -142,7 +143,7 @@ class SettingsPanel(private val u: U, private val act: Activity, private val hos
             elevation = u.px(24f)
             isClickable = true
         }
-        addView(panel, FrameLayout.LayoutParams(u.i(820f), u.i(500f), Gravity.CENTER))
+        addView(panel, FrameLayout.LayoutParams(u.i(820f), u.i(540f), Gravity.CENTER))
         panel.addView(body, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         build()
     }
@@ -272,9 +273,25 @@ class SettingsPanel(private val u: U, private val act: Activity, private val hos
         }
 
         label(L, 326f, R.string.v4_theme)
-        val themeIdx = when (draft.theme) { V4Prefs.LIGHT -> 1; V4Prefs.DARK -> 2; else -> 0 }
-        seg(L, 346f, CW, listOf(act.getString(R.string.v4_auto) to null, act.getString(R.string.v4_light) to null, act.getString(R.string.v4_dark) to null), themeIdx) { i ->
-            draft.theme = when (i) { 1 -> V4Prefs.LIGHT; 2 -> V4Prefs.DARK; else -> V4Prefs.AUTO }
+        val themes = mutableListOf(V4Prefs.AUTO, V4Prefs.LIGHT, V4Prefs.DARK)
+        if (V4Prefs.hasXmas(act)) themes.add(V4Prefs.XMAS)
+        val themeNames = themes.map {
+            act.getString(when (it) { V4Prefs.LIGHT -> R.string.v4_light; V4Prefs.DARK -> R.string.v4_dark; V4Prefs.XMAS -> R.string.v4_xmas; else -> R.string.v4_auto }) to null
+        }
+        seg(L, 346f, CW, themeNames, themes.indexOf(draft.theme).coerceAtLeast(0)) { i ->
+            draft.theme = themes[i]
+            build()
+        }
+
+        // APP DEL MAPA: la que abre el widget del mapa (y la que se ve al navegar)
+        label(L, 410f, R.string.v4_map_app)
+        val mapIdx = when (draft.mapApp) { V4Prefs.MAP_GMAPS -> 0; V4Prefs.MAP_WAZE -> 1; V4Prefs.MAP_SLOT -> 2; else -> -1 }
+        seg(L, 430f, CW, listOf("Google Maps" to null, "Waze" to null, act.getString(R.string.v4_other_app) to null), mapIdx) { i ->
+            when (i) {
+                0 -> draft.mapApp = V4Prefs.MAP_GMAPS
+                1 -> draft.mapApp = V4Prefs.MAP_WAZE
+                else -> { draft.mapApp = V4Prefs.MAP_SLOT; host.pickMapApp() }
+            }
             build()
         }
 

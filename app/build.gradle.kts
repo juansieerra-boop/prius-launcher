@@ -37,6 +37,23 @@ android {
         create("jeep") {
             dimension = "carro"
             applicationId = "com.juandiego.jeeplauncher"
+            // CarGO v4 en oro rosa para el Jeep de CARO (Android 8.1)
+            versionCode = 4
+            versionName = "4.0"
+        }
+    }
+
+    // CarGO v4: el mismo código para los dos carros; cada sabor pone su foto, medidas y colores
+    sourceSets {
+        getByName("prius") {
+            java.srcDir("src/v4/java")
+            res.srcDir("src/v4/res")
+            assets.srcDir("src/v4/assets")
+        }
+        getByName("jeep") {
+            java.srcDir("src/v4/java")
+            res.srcDir("src/v4/res")
+            assets.srcDir("src/v4/assets")
         }
     }
 

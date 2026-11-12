@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Prius: la pantalla de inicio es CarGO v4. La versión v3 queda instalada pero ya no es la de inicio. -->
+    <!-- La pantalla de inicio es CarGO v4. La versión v3 queda instalada pero ya no es la de inicio. -->
     <application>
         <activity
             android:name="com.juandiego.priuslauncher.MainActivity"

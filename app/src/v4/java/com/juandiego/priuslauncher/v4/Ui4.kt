@@ -16,20 +16,36 @@ import android.widget.ImageView
 import android.widget.TextView
 import kotlin.math.roundToInt
 
-/** Colores v4: sin blanco puro ni negro puro para no cansar la vista. */
-class Pal(val dark: Boolean) {
-    val bg = if (dark) 0xFF0A0A0C.toInt() else 0xFFE6E7EA.toInt()
-    val card = if (dark) 0xFF17181B.toInt() else 0xFFFAFAFB.toInt()
-    val card2 = if (dark) 0xFF121316.toInt() else 0xFFF3F4F6.toInt()
-    val tx = if (dark) 0xFFE4E5E8.toInt() else 0xFF1C1D20.toInt()
-    val sub = if (dark) 0xFF8C9199.toInt() else 0xFF6B6F76.toInt()
-    val faint = if (dark) 0xFF62666D.toInt() else 0xFF9AA0A8.toInt()
-    val line = if (dark) 0xFF2C2E33.toInt() else 0xFFE2E4E8.toInt()
-    val btn = if (dark) 0xFF2A2C31.toInt() else 0xFFF0F1F4.toInt()
-    val glass = if (dark) 0xEB1C1D21.toInt() else 0xEBFFFFFF.toInt()
-    val accent = 0xFF3E9BFF.toInt()
+/**
+ * Colores v4: sin blanco puro ni negro puro para no cansar la vista.
+ * style: "gray" (Prius), "rose" (oro rosa, Jeep de CARO) o "xmas" (Navidad).
+ */
+class Pal(val dark: Boolean, val style: String = "gray") {
+    private fun c(gray: Long, grayD: Long, rose: Long, roseD: Long, xmas: Long, xmasD: Long): Int = when (style) {
+        "rose" -> if (dark) roseD else rose
+        "xmas" -> if (dark) xmasD else xmas
+        else -> if (dark) grayD else gray
+    }.toInt()
+    val bg = c(0xFFE6E7EA, 0xFF0A0A0C, 0xFFEFE5E2, 0xFF0C090B, 0xFFF6E6EC, 0xFF0B0D19)
+    val card = c(0xFFFAFAFB, 0xFF17181B, 0xFFFCF8F7, 0xFF1A1417, 0xFFFFF8FA, 0xFF161A2B)
+    val card2 = c(0xFFF3F4F6, 0xFF121316, 0xFFF6EEEC, 0xFF141013, 0xFFFBEFF3, 0xFF111423)
+    val tx = c(0xFF1C1D20, 0xFFE4E5E8, 0xFF2A1C20, 0xFFEDE4E6, 0xFF2B1A24, 0xFFF2E8EE)
+    val sub = c(0xFF6B6F76, 0xFF8C9199, 0xFF7A646A, 0xFFA08C93, 0xFF8A6578, 0xFFB39FB0)
+    val faint = c(0xFF9AA0A8, 0xFF62666D, 0xFFA8949A, 0xFF6E5E64, 0xFFB496A6, 0xFF756C86)
+    val line = c(0xFFE2E4E8, 0xFF2C2E33, 0xFFEADBD8, 0xFF322A2E, 0xFFF0DAE3, 0xFF2A2D44)
+    val btn = c(0xFFF0F1F4, 0xFF2A2C31, 0xFFF3E8E5, 0xFF2C2328, 0xFFF8E9EF, 0xFF252940)
+    val glass = c(0xEBFFFFFF, 0xEB1C1D21, 0xEBFFFAF9, 0xEB1E171B, 0xEBFFFAFC, 0xEB181B2D)
+    val accent = c(0xFF3E9BFF, 0xFF3E9BFF, 0xFFC9506E, 0xFFC9506E, 0xFFE8508A, 0xFFE8508A)
     val green = 0xFF34C759.toInt()
     val yellow = 0xFFFFD84A.toInt()
+
+    /** Fondo del carro: pared arriba/abajo, piso arriba/abajo, luz detrás y su intensidad. */
+    val stage: IntArray = when {
+        style == "rose" && dark -> intArrayOf(0xFF151013.toInt(), 0xFF1D171A.toInt(), 0xFF191316.toInt(), 0xFF0D0A0C.toInt(), 0xFF43363C.toInt())
+        style == "rose" -> intArrayOf(0xFFF6EEEB.toInt(), 0xFFEDE2DF.toInt(), 0xFFE6D9D5.toInt(), 0xFFDACBC7.toInt(), 0xFFFFFFFF.toInt())
+        dark -> intArrayOf(0xFF121317.toInt(), 0xFF1A1C21.toInt(), 0xFF16171B.toInt(), 0xFF0C0D10.toInt(), 0xFF3A3F48.toInt())
+        else -> intArrayOf(0xFFECEDEF.toInt(), 0xFFE2E4E7.toInt(), 0xFFDCDEE1.toInt(), 0xFFCFD2D6.toInt(), 0xFFFFFFFF.toInt())
+    }
 }
 
 /** Tipografía Inter (la misma de los renders). */

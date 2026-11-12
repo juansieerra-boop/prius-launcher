@@ -68,4 +68,9 @@
     <string name="v4_dir_nw">NO</string>
     <string name="v4_phone">Teléfono</string>
     <string name="v4_music">Música</string>
+    <string name="v4_xmas">Navidad</string>
+    <string name="v4_map_app">APP DEL MAPA</string>
+    <string name="v4_other_app">Otra app</string>
+    <string name="v4_open_app">Abrir %1$s</string>
+    <string name="v4_arrival">Llegada %1$s</string>
 </resources>

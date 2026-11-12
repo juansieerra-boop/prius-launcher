@@ -116,7 +116,7 @@ class V4Activity : Activity(), SettingsHost {
             return
         }
         savedState = savedInstanceState
-        pal = Pal(V4Prefs.isDark(this))
+        pal = Pal(V4Prefs.isDark(this), V4Prefs.style(this))
         root = Root(this)
         root.setBackgroundColor(pal.bg)
         setContentView(root)
@@ -157,7 +157,7 @@ class V4Activity : Activity(), SettingsHost {
         root.place(uu, b, 10f, 10f, designW - 20f, 58f)
         bar = b
 
-        mapCard = MapCard(uu, this, savedState, { openMaps() }, {})
+        mapCard = MapCard(uu, this, savedState, {}, {})
         center = CenterCard(uu, this, widgetHost) { lang -> setLanguage(lang) }
         weather = WeatherCard(uu)
         swap = SwapCard(uu, this, null) { lang -> setLanguage(lang) }
@@ -345,63 +345,31 @@ class V4Activity : Activity(), SettingsHost {
         editBar?.bringToFront()
     }
 
-    /** Raíz que detecta "mantener presionado" en cualquier tarjeta y el arrastre del modo editar. */
+    /**
+     * Raíz: en el modo editar maneja el arrastre de los widgets.
+     * Fuera del modo editar los toques van directo a los widgets (el modo editar solo se abre desde Ajustes).
+     */
     private inner class Root(ctx: Context) : FrameLayout(ctx) {
-        private var pressX = 0f
-        private var pressY = 0f
-        private var pressIndex = -1
-        private var longFired = false
-        private val longPress = Runnable {
-            if (pressIndex >= 0 && settings == null && !editing) {
-                longFired = true
-                enterEditMode()
-                dragStart(pressIndex, pressX, pressY)
-                cancelChildren()
-            }
-        }
-
-        /** Los botones de adentro dejan de recibir el toque (ya empezó el modo editar). */
-        private fun cancelChildren() {
-            val cancel = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_CANCEL, pressX, pressY, 0)
-            super.dispatchTouchEvent(cancel)
-            cancel.recycle()
-        }
-
         override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-            if (!ready || settings != null) return super.dispatchTouchEvent(ev)
+            if (!ready || settings != null || !editing) return super.dispatchTouchEvent(ev)
             val x = ev.x
             val y = ev.y
-            if (editing) {
-                if (longFired) {
-                    // seguimos con el mismo dedo del "mantener presionado"
-                    when (ev.actionMasked) {
-                        MotionEvent.ACTION_MOVE -> dragMove(x, y)
-                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { longFired = false; dragEnd(x, y) }
-                    }
-                    return true
-                }
-                val inCards = slotAt(x, y) >= 0
-                if (!inCards || center?.chipHit(ev.rawX, ev.rawY) == true) return super.dispatchTouchEvent(ev)
-                when (ev.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> dragStart(slotAt(x, y), x, y)
-                    MotionEvent.ACTION_MOVE -> dragMove(x, y)
-                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> dragEnd(x, y)
-                }
-                return true
+            val inCards = slotAt(x, y) >= 0
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN && (!inCards || center?.chipHit(ev.rawX, ev.rawY) == true)) {
+                passThrough = true
+            }
+            if (passThrough) {
+                if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) passThrough = false
+                return super.dispatchTouchEvent(ev)
             }
             when (ev.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    pressX = x; pressY = y
-                    pressIndex = slotAt(x, y)
-                    longFired = false
-                    if (pressIndex >= 0) handler.postDelayed(longPress, 650)
-                }
-                MotionEvent.ACTION_MOVE -> if (abs(x - pressX) > ViewConfiguration.get(context).scaledTouchSlop ||
-                    abs(y - pressY) > ViewConfiguration.get(context).scaledTouchSlop) handler.removeCallbacks(longPress)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_DOWN -> handler.removeCallbacks(longPress)
+                MotionEvent.ACTION_DOWN -> if (inCards) dragStart(slotAt(x, y), x, y)
+                MotionEvent.ACTION_MOVE -> dragMove(x, y)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> dragEnd(x, y)
             }
-            return super.dispatchTouchEvent(ev)
+            return true
         }
+        private var passThrough = false
     }
 
     // ---------- Ajustes ----------
@@ -424,11 +392,12 @@ class V4Activity : Activity(), SettingsHost {
 
     override fun saved(before: V4Prefs.Draft, after: V4Prefs.Draft) {
         closeSettings()
-        if (before.lang != after.lang || V4Prefs.isDark(this) != pal.dark) {
+        if (before.lang != after.lang || V4Prefs.isDark(this) != pal.dark || V4Prefs.style(this) != pal.style) {
             recreate()
             return
         }
         layoutCards(false)
+        mapCard?.buildButtons()
     }
 
     override fun resetLayout() {
@@ -441,6 +410,10 @@ class V4Activity : Activity(), SettingsHost {
         layoutCards(true)
         if (editing) showOutlines()
         Toast.makeText(this, R.string.v4_layout_reset_done, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun pickMapApp() {
+        startSafe(this, Intent(this, AppsActivity::class.java).putExtra(AppsActivity.EXTRA_PICK_SLOT, com.juandiego.priuslauncher.DockSlots.MAPS))
     }
 
     override fun pickGallery(done: (Boolean) -> Unit) {
@@ -537,13 +510,6 @@ class V4Activity : Activity(), SettingsHost {
         if (!startSafe(this, Intent(this, AppsActivity::class.java))) Toast.makeText(this, R.string.v4_cant_open, Toast.LENGTH_SHORT).show()
     }
 
-    private fun openMaps() {
-        if (editing) return
-        val i = packageManager.getLaunchIntentForPackage("com.google.android.apps.maps")?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            ?: packageManager.getLaunchIntentForPackage("com.waze")?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (!startSafe(this, i)) Toast.makeText(this, R.string.v4_cant_open, Toast.LENGTH_SHORT).show()
-    }
-
     private fun setLanguage(lang: String) {
         if (lang == Prefs.lang(this)) return
         Prefs.setLang(this, lang)
@@ -561,6 +527,8 @@ class V4Activity : Activity(), SettingsHost {
         startGps()
         media?.start()
         Weather.addListener(weatherListener)
+        com.juandiego.priuslauncher.NavState.addListener(navListener)
+        mapCard?.showNav(com.juandiego.priuslauncher.NavState.current)
         Forecast.onChange = { weather?.refresh() }
         try { widgetHost?.startListening() } catch (e: Exception) { }
         mapCard?.panel?.onStart()
@@ -569,6 +537,7 @@ class V4Activity : Activity(), SettingsHost {
     }
 
     private val weatherListener: () -> Unit = { weather?.refresh() }
+    private val navListener: () -> Unit = { mapCard?.showNav(com.juandiego.priuslauncher.NavState.current) }
 
     override fun onStart() {
         super.onStart()
@@ -579,11 +548,13 @@ class V4Activity : Activity(), SettingsHost {
         super.onResume()
         hideSystemUi()
         if (!ready) return
-        if (V4Prefs.isDark(this) != pal.dark) {
+        if (V4Prefs.isDark(this) != pal.dark || V4Prefs.style(this) != pal.style) {
             recreate()
             return
         }
         mapCard?.panel?.onResume()
+        mapCard?.buildButtons()
+        mapCard?.showNav(com.juandiego.priuslauncher.NavState.current)
         swap?.build()
         center?.swap?.build()
         showMedia()
@@ -600,6 +571,7 @@ class V4Activity : Activity(), SettingsHost {
         stopGps()
         media?.stop()
         Weather.removeListener(weatherListener)
+        com.juandiego.priuslauncher.NavState.removeListener(navListener)
         Forecast.onChange = null
         try { widgetHost?.stopListening() } catch (e: Exception) { }
         mapCard?.panel?.onStop()
@@ -656,7 +628,7 @@ class V4Activity : Activity(), SettingsHost {
             if (ticks % 5 == 0) bar?.setStatus(Radios.wifiConnected(this@V4Activity), gpsColor)
             if (ticks % 30 == 0) {
                 // 5 PM y 6 AM: cambia el tema (automático) y las luces
-                if (V4Prefs.isDark(this@V4Activity) != pal.dark && settings == null && !editing) {
+                if ((V4Prefs.isDark(this@V4Activity) != pal.dark || V4Prefs.style(this@V4Activity) != pal.style) && settings == null && !editing) {
                     recreate()
                     return
                 }

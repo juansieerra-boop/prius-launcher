@@ -113,6 +113,13 @@ class CenterCard(
                 name.visibility = View.GONE
                 showSwap(V4Prefs.panelWidget(act), tall)
             }
+            V4Prefs.theme(act) == V4Prefs.XMAS -> {
+                // Navidad: la foto de Navidad del carro llena el panel, centrada en el carro
+                mode = V4Prefs.XMAS
+                stage.visibility = View.VISIBLE
+                stage.setGallery(xmasPhoto(), 830f / 2576f)
+                name.visibility = View.GONE
+            }
             else -> {
                 mode = V4Prefs.PANEL_CAR
                 stage.visibility = View.VISIBLE
@@ -120,6 +127,16 @@ class CenterCard(
                 name.visibility = View.VISIBLE
             }
         }
+    }
+
+    private var xmas: Bitmap? = null
+    private fun xmasPhoto(): Bitmap? {
+        if (xmas == null) xmas = try {
+            BitmapFactory.decodeResource(act.resources, R.drawable.v4_xmas, BitmapFactory.Options().apply { inScaled = false })
+        } catch (e: OutOfMemoryError) {
+            null
+        }
+        return xmas
     }
 
     private fun showSwap(kind: String, tall: Boolean) {

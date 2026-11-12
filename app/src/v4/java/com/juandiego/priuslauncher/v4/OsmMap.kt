@@ -117,7 +117,7 @@ class OsmMapView(private val u: U) : View(u.ctx) {
     private val dst = RectF()
     private val arrow = Path()
     private val redraw: () -> Unit = { invalidate() }
-    private val bg = if (u.pal.dark) 0xFF17181B.toInt() else 0xFFE9EBEC.toInt()
+    private val bg = u.pal.card
 
     /** Día: casi sin color. Noche: invertido y apagado (calles claras sobre fondo oscuro). */
     private fun matrix(dark: Boolean): ColorMatrix {

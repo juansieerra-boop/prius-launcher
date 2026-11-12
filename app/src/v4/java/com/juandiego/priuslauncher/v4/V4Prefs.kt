@@ -3,6 +3,7 @@ package com.juandiego.priuslauncher.v4
 import android.content.Context
 import android.net.Uri
 import com.juandiego.priuslauncher.Prefs
+import com.juandiego.priuslauncher.R
 import java.util.Calendar
 
 /** Toda la configuración de la pantalla v4 (se guarda con el botón Guardar de Ajustes). */
@@ -18,6 +19,12 @@ object V4Prefs {
     const val OFF = "off"
     const val LIGHT = "light"
     const val DARK = "dark"
+    const val XMAS = "xmas"
+
+    /** App del mapa: "" = botones Waze y Google Maps; un paquete; o SLOT = la app elegida de la lista. */
+    const val MAP_GMAPS = "com.google.android.apps.maps"
+    const val MAP_WAZE = "com.waze"
+    const val MAP_SLOT = "slot"
 
     /** Widgets que se pueden poner en los espacios. */
     const val W_MAP = "map"
@@ -36,11 +43,21 @@ object V4Prefs {
 
     private fun p(c: Context) = c.getSharedPreferences(NAME, Context.MODE_PRIVATE)
 
-    fun carName(c: Context): String = p(c).getString("name", "PRIUS") ?: "PRIUS"
+    fun defaultName(c: Context): String = c.getString(R.string.v4_default_name)
+    fun carName(c: Context): String = p(c).getString("name", null) ?: defaultName(c)
+    fun hasXmas(c: Context): Boolean = c.resources.getBoolean(R.bool.v4_has_xmas)
+    fun mapApp(c: Context): String = p(c).getString("map_app", "") ?: ""
     fun panel(c: Context): String = p(c).getString("panel", PANEL_CAR) ?: PANEL_CAR
     fun panelWidget(c: Context): String = p(c).getString("panel_widget", K_SPEED) ?: K_SPEED
     fun lights(c: Context): String = p(c).getString("lights", AUTO) ?: AUTO
-    fun theme(c: Context): String = p(c).getString("theme", AUTO) ?: AUTO
+    /** El Jeep empieza con el tema de Navidad; el Prius en automático. */
+    fun theme(c: Context): String {
+        val t = p(c).getString("theme", null) ?: if (hasXmas(c)) XMAS else AUTO
+        return if (t == XMAS && !hasXmas(c)) AUTO else t
+    }
+
+    /** Colores: Navidad, o los del carro (gris en el Prius, oro rosa en el Jeep). */
+    fun style(c: Context): String = if (theme(c) == XMAS) "xmas" else c.getString(R.string.v4_palette)
     fun galleryUri(c: Context): Uri? = p(c).getString("gallery", null)?.let { Uri.parse(it) }
     fun appWidgetId(c: Context): Int = p(c).getInt("appwidget_id", -1)
 
@@ -69,14 +86,16 @@ object V4Prefs {
         var lights = lights(c)
         var theme = theme(c)
         var lang = Prefs.lang(c)
+        var mapApp = mapApp(c)
 
         fun save(c: Context) {
             p(c).edit()
-                .putString("name", name.trim().ifEmpty { "PRIUS" })
+                .putString("name", name.trim().ifEmpty { defaultName(c) })
                 .putString("panel", panel)
                 .putString("panel_widget", panelWidget)
                 .putString("lights", lights)
                 .putString("theme", theme)
+                .putString("map_app", mapApp)
                 .apply()
             Prefs.setLang(c, lang)
         }

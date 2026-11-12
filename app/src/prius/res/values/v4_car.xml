@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CarGO v4 · Prius: medidas del dibujo (ancho, alto, llanta delantera x,y, trasera x,y, ancho del carro x,y,
+     factor atrás, ancho de contacto delantera, trasera, delantera lejana), nombre, colores y Navidad -->
+<resources>
+    <string name="v4_geom" translatable="false">909,454,444,425,844,321,-229.5,-34,0.72,40,25,0</string>
+    <string name="v4_default_name" translatable="false">PRIUS</string>
+    <string name="v4_palette" translatable="false">gray</string>
+    <bool name="v4_has_xmas">false</bool>
+</resources>
