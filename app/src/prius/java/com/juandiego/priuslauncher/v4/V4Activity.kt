@@ -701,7 +701,9 @@ class V4Activity : Activity(), SettingsHost {
         }
         val moving = loc.hasSpeed() && loc.speed > 1.5f
         if (loc.hasBearing() && moving) bearing = loc.bearing
-        mapCard?.panel?.setLocation(loc.latitude, loc.longitude, if (loc.hasBearing() && moving) loc.bearing else null)
+        if (moving) movingAt = SystemClock.elapsedRealtime()
+        mapCard?.setLocation(loc.latitude, loc.longitude, if (loc.hasBearing() && moving) loc.bearing else null)
+        mapCard?.located = true
         swap?.setBearing(bearing)
         center?.swap?.setBearing(bearing)
         Weather.update(this, loc)
@@ -748,10 +750,12 @@ class V4Activity : Activity(), SettingsHost {
     }
 
     private var street: String? = null
+    private var movingAt = 0L
     private var cityName = ""
 
     private fun updatePlaceDir() {
-        val dir = if (lastFix > 0) cardinal(this, bearing) else null
+        // el rumbo solo se muestra si el carro va en movimiento (sin GPS en movimiento no hay rumbo real)
+        val dir = if (movingAt > 0 && SystemClock.elapsedRealtime() - movingAt < 15_000) cardinal(this, bearing) else null
         mapCard?.setPlace(street, listOfNotNull(cityName.ifBlank { null }, dir).joinToString(" · "))
     }
 

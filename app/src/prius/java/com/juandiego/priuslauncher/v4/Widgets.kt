@@ -90,7 +90,9 @@ class MapCard(
     onTapMap: () -> Unit, onLong: () -> Unit
 ) : Card(u) {
 
-    val panel: MapPanel
+    /** Google Maps (si la pantalla tiene Google Play y hay clave) o el mapa de respaldo OpenStreetMap. */
+    val panel: MapPanel?
+    private val osm: OsmMapView?
     private val pill = LinearLayout(u.ctx)
     private val pillText = u.text(13f, 600, u.pal.tx, u.ctx.getString(R.string.v4_nav))
     private val loc = LinearLayout(u.ctx)
@@ -99,12 +101,22 @@ class MapCard(
     private var compact = false
     private var streetName: String? = null
     private var cityLine: String = ""
+    var located = false
+        set(v) { if (field != v) { field = v; refreshText() } }
 
     init {
         val holder = FrameLayout(u.ctx)
         addView(holder, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        panel = MapPanel(act, holder, false, !u.pal.dark, u.pal.accent, onTapMap, onLong)
-        panel.create(state)
+        if (MapPanel.googleAvailable(act)) {
+            val mp = MapPanel(act, holder, false, !u.pal.dark, u.pal.accent, onTapMap, onLong)
+            mp.create(state)
+            panel = mp
+            osm = null
+        } else {
+            panel = null
+            osm = OsmMapView(u).apply { setOnClickListener { onTapMap() } }
+            holder.addView(osm, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        }
 
         pill.orientation = LinearLayout.HORIZONTAL
         pill.gravity = Gravity.CENTER_VERTICAL
@@ -146,6 +158,11 @@ class MapCard(
         if (!startSafe(act, i)) android.widget.Toast.makeText(act, act.getString(R.string.v4_not_installed, name), android.widget.Toast.LENGTH_SHORT).show()
     }
 
+    fun setLocation(lat: Double, lon: Double, bearing: Float?) {
+        panel?.setLocation(lat, lon, bearing)
+        osm?.setLocation(lat, lon, bearing)
+    }
+
     fun setCompact(c: Boolean) {
         compact = c
         loc.visibility = if (c) View.GONE else View.VISIBLE
@@ -165,7 +182,7 @@ class MapCard(
             else u.ctx.getString(R.string.v4_nav)
         } else {
             pillText.text = u.ctx.getString(R.string.v4_nav)
-            street.text = st ?: u.ctx.getString(R.string.v4_locating)
+            street.text = st ?: u.ctx.getString(if (located) R.string.v4_here else R.string.v4_locating)
             city.text = cityLine
             city.visibility = if (cityLine.isBlank()) View.GONE else View.VISIBLE
         }

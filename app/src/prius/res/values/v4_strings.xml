@@ -4,6 +4,7 @@
     <string name="v4_waze">Waze</string>
     <string name="v4_gmaps">Google Maps</string>
     <string name="v4_locating">Buscando ubicación</string>
+    <string name="v4_here">Ubicación actual</string>
     <string name="v4_weather">Clima</string>
     <string name="v4_hi_lo">Máx %1$s · Mín %2$s</string>
     <string name="v4_next_days">Próximos días</string>

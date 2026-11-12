@@ -134,12 +134,21 @@ class MusicBar(
         (gpsDot.background as? android.graphics.drawable.GradientDrawable)?.setColor(gpsColor)
     }
 
+    /** Sin segunda línea, el título queda centrado con la carátula. */
+    private fun centerTitle(single: Boolean) {
+        val lp = title.layoutParams as? FrameLayout.LayoutParams ?: return
+        val want = u.i(if (single) 20f else 12f)
+        if (lp.topMargin != want) { lp.topMargin = want; title.layoutParams = lp }
+        artist.visibility = if (single) View.GONE else View.VISIBLE
+    }
+
     /** Actualiza canción, carátula, botón y progreso. */
     fun showMedia(n: MediaHub.Now?, source: String?) {
         if (n == null || n.title == null) {
             val access = n?.hasAccess ?: false
             title.setText(if (access) R.string.v4_no_music else R.string.v4_no_access)
             artist.text = if (access) "" else u.ctx.getString(R.string.v4_no_access_sub)
+            centerTitle(artist.text.isNullOrEmpty())
             art.setImageDrawable(null)
             artNote.visibility = View.VISIBLE
             setPlaying(n?.playing ?: false)
@@ -150,6 +159,7 @@ class MusicBar(
         }
         title.text = n.title
         artist.text = listOfNotNull(source, n.artist).filter { it.isNotBlank() }.distinct().joinToString(" · ")
+        centerTitle(artist.text.isNullOrEmpty())
         if (n.art != null) {
             art.setImageBitmap(n.art)
             artNote.visibility = View.GONE

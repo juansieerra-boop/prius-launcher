@@ -27,6 +27,16 @@ adb shell input keyevent KEYCODE_BACK; sleep 2
 cx=$(awk "BEGIN{printf \"%d\", (306+($dw-612)/2)*$s}"); cy=$(awk "BEGIN{printf \"%d\", 334*$s}")
 adb shell input swipe $cx $cy $cx $cy 1200; sleep 2; shot editar
 adb shell input keyevent KEYCODE_BACK; sleep 1
+# Ajustes → Tema Claro → Guardar
+ox=$(awk "BEGIN{print ($dw-820)/2}")
+adb shell input tap $gx $gy; sleep 2
+adb shell input tap $(awk "BEGIN{printf \"%d %d\", ($ox+208)*$s, (50+368)*$s}"); sleep 1; shot ajustes_claro
+adb shell input tap $(awk "BEGIN{printf \"%d %d\", ($ox+706)*$s, (50+503)*$s}"); sleep 5
+for i in 1 2 3; do adb emu geo fix -117.8265 33.6846 20 8 30; sleep 1; done
+sleep 4; shot claro
+# ⇄ de la sección intercambiable → Apps
+adb shell input tap $(awk "BEGIN{printf \"%d %d\", ($dw-10-24)*$s, (336+24)*$s}"); sleep 2; shot apps
+adb shell input tap $(awk "BEGIN{printf \"%d %d\", ($dw-10-24)*$s, (336+24)*$s}"); sleep 2; shot reloj
 echo "===== $size: proceso final"; adb shell pidof "$pkg" || echo "PROCESO MUERTO"
 echo "===== $size: logcat (errores)"
 adb logcat -d -v brief AndroidRuntime:E '*:S' | tail -n 80

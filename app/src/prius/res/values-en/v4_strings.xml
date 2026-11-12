@@ -4,6 +4,7 @@
     <string name="v4_waze">Waze</string>
     <string name="v4_gmaps">Google Maps</string>
     <string name="v4_locating">Locating</string>
+    <string name="v4_here">Current location</string>
     <string name="v4_weather">Weather</string>
     <string name="v4_hi_lo">H %1$s · L %2$s</string>
     <string name="v4_next_days">Next days</string>
