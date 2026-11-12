@@ -42,4 +42,6 @@ echo "===== $size: logcat (errores)"
 adb logcat -d -v brief AndroidRuntime:E '*:S' | tail -n 80
 adb logcat -d -v brief | grep -iE "priuslauncher|V4Activity|FATAL" | tail -n 40
 echo "===== $size: APK_SHA256 $(sha256sum "$apk" | cut -d' ' -f1)"
+# el APK probado, para entregarlo tal cual
+echo "===== $size: APK_BEGIN"; base64 -w 3000 "$apk" | sed "s/^/APK:/"; echo "===== $size: APK_END"
 exit 0
