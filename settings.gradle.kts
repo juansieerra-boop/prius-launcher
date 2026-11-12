@@ -18,3 +18,4 @@ dependencyResolutionManagement {
 rootProject.name = "PriusLauncher"
 include(":app")
 include(":cargo")
+include(":diag")

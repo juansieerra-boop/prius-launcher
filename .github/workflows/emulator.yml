@@ -22,7 +22,7 @@ jobs:
       - name: Compilar APKs
         run: |
           chmod +x gradlew
-          ./gradlew :cargo:assemblePriusDebug :cargo:assembleJeepDebug --no-daemon
+          ./gradlew :cargo:assemblePriusDebug :cargo:assembleJeepDebug :diag:assembleDebug --no-daemon
 
       - name: Habilitar KVM
         run: |

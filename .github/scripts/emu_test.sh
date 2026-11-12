@@ -27,6 +27,17 @@ for f in prius jeep; do
   echo "===== $f: SHOT_END"
   adb shell am force-stop "$pkg"
 done
+# Diagnóstico: se instala y abre igual que CarGo
+dapk=diag/build/outputs/apk/debug/diag-debug.apk
+echo "===== diag: install"; adb install -r "$dapk"
+adb logcat -c; adb shell am start -n com.cargo.diag/.DiagActivity; sleep 6
+adb shell pidof com.cargo.diag || echo "PROCESO MUERTO"
+adb logcat -d -v brief AndroidRuntime:E '*:S' | tail -n 40
+adb exec-out screencap -p > shot_diag.png
+echo "===== diag: SHOT_BEGIN"; base64 -w 3000 shot_diag.png | sed "s/^/B64:/"; echo "===== diag: SHOT_END"
+echo "===== diag: APK_SHA256 $(sha256sum "$dapk" | cut -d' ' -f1)"
+echo "===== diag: APK_BEGIN"; base64 -w 3000 "$dapk" | sed "s/^/APK:/"; echo "===== diag: APK_END"
+
 # Los mismos APK que se acaban de probar, para entregarlos tal cual
 for f in prius jeep; do
   apk=$(ls cargo/build/outputs/apk/$f/debug/*.apk | head -1)
