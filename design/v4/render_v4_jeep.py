@@ -6,7 +6,7 @@ import render_v4 as r
 A = os.path.join(r.ROOT, '..')
 r.car = base64.b64encode(open(os.path.join(A, 'originales', 'jeep_caro_blanco.png'), 'rb').read()).decode()
 r.lights = base64.b64encode(open(os.path.join(A, 'assets', 'jeep_caro_luces.png'), 'rb').read()).decode()
-r.CAR_NAME = 'WRANGLER'
+r.CAR_NAME = 'DENALI WRANGLER'
 NAV0 = r.ICON['nav']
 # Medidas del dibujo 2087x1219 (mira a la derecha): llanta delantera cercana, trasera cercana y delantera lejana
 NF, NR, FF = (1085, 1217), (199, 1007), (1823, 1091)
@@ -69,6 +69,26 @@ def render_xmas():
         b.close()
     r.car, r.showroom, r.lights_img, r.CAR_NAME, r.A, r.STAGE = saved
 
+def render_final():
+    """Aprobado: oro rosa. Inicio día/noche, navegando con Waze y Ajustes con la app del mapa."""
+    from playwright.sync_api import sync_playwright
+    import render_v4_ajustes as aj
+    r.A = '#C9506E'; r.STAGE = ROSE_STAGE; r.ICON['nav'] = NAV0.replace('#3E9BFF', r.A); r.MAP_APP = ('Waze', '#33CCFF')
+    with sync_playwright() as p:
+        b = p.chromium.launch(executable_path='/usr/bin/google-chrome')
+        def shot(html, name):
+            pg = b.new_page(viewport={'width': 1920, 'height': 1080}, device_scale_factor=1)
+            pg.set_content(html); pg.wait_for_timeout(400); pg.screenshot(path=f'{r.ROOT}/{name}.png'); pg.close()
+        for name, th in ROSE.items():
+            shot(r.home(th), f'jeep_v4_final_{name}')
+        r.NAV = dict(app='Waze', color='#33CCFF', dist='300 ft', turn='Gira a la derecha', street='Jamboree Rd', eta='10:42 PM', left='12 min · 3.4 mi')
+        shot(r.home(ROSE['noche']), 'jeep_v4_final_navegando')
+        r.NAV = None
+        shot(r.home(ROSE['dia']).replace('</body>', aj.sheet(ROSE['dia']) + '</body>'), 'jeep_v4_final_ajustes')
+        b.close()
+    r.MAP_APP = None
+
 if __name__ == '__main__':
+    render_final()
     render_xmas()
     print('navidad ok')

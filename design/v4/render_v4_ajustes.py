@@ -2,9 +2,12 @@
 # Uso: python3 design/v4/render_v4_ajustes.py   (desde la raíz del repo)
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from render_v4 import TH, A, home, ROOT, CAR_NAME
+import render_v4 as _r
+from render_v4 import TH, home, ROOT
+MAP_APP = 1
 
 def sheet(t):
+    A = _r.A; CAR_NAME = _r.CAR_NAME
     lab = lambda x, y, txt: f'<div style="position:absolute;left:{x}px;top:{y}px;font-size:11px;font-weight:700;color:{t["faint"]};letter-spacing:.8px">{txt}</div>'
     def seg(x, y, w, items, on):
         cells = ''.join(f'<div style="flex:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:600;'
@@ -31,7 +34,7 @@ def sheet(t):
     pencil = f'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{t["sub"]}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
     L, R, CW = 24, 428, 368
     return f'''<div style="position:absolute;inset:0;background:rgba(0,0,0,.40)"></div>
-<div style="position:absolute;left:123px;top:50px;width:820px;height:500px;border-radius:26px;background:{t["card"]};box-shadow:0 24px 60px rgba(0,0,0,.3)">
+<div style="position:absolute;left:123px;top:30px;width:820px;height:540px;border-radius:26px;background:{t["card"]};box-shadow:0 24px 60px rgba(0,0,0,.3)">
  <div style="position:absolute;left:{L}px;top:22px;font-size:20px;font-weight:700">Ajustes</div>
  <div style="position:absolute;right:20px;top:18px;width:32px;height:32px;border-radius:16px;background:{t["btn"]};display:flex;align-items:center;justify-content:center;color:{t["sub"]};font-size:15px">✕</div>
  {lab(L, 74, 'VEHÍCULO')}
@@ -43,6 +46,8 @@ def sheet(t):
  {seg(L, 262, CW, [('Auto', '5 PM – 6 AM'), ('Siempre', ''), ('Apagadas', '')], 0)}
  {lab(L, 326, 'TEMA')}
  {seg(L, 346, CW, [('Auto', ''), ('Claro', ''), ('Oscuro', '')], 0)}
+ {lab(L, 410, 'APP DEL MAPA')}
+ {seg(L, 430, CW, [('Google Maps', ''), ('Waze', ''), ('Otra app', '')], MAP_APP)}
  {lab(R, 74, 'IDIOMA')}
  {seg(R, 94, CW, [('Español', ''), ('English', '')], 0)}
  {lab(R, 158, 'CONEXIONES')}

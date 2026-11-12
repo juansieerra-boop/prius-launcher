@@ -164,6 +164,25 @@ def theme_toggle(t):
     gear = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
     return f'<div class="gear">{gear}</div>'   # el tema claro/oscuro se cambia en Ajustes
 
+MAP_APP = None   # None = botones Waze y Google Maps · ('Waze', '#33CCFF') = la app elegida en Ajustes
+NAV = None   # None = sin navegación · dict(app, color, turn, dist, street, eta, left) = navegando con la app elegida
+
+def map_card(t):
+    m = f'<div class="card map"><img src="data:image/svg+xml;base64,{mapsvg(t, 286, 512)}">'
+    go = (f'<div class="go"><div><span class="d" style="background:{MAP_APP[1]}"></span>Abrir {MAP_APP[0]}</div></div>' if MAP_APP else
+          '<div class="go"><div><span class="d" style="background:#33CCFF"></span>Waze</div><div><span class="d" style="background:#34A853"></span>Google Maps</div></div>')
+    if not NAV:
+        return m + f'''<div class="pill">{ICON["nav"]}Navegación</div>
+ <div class="loc"><b>Jamboree Rd</b><span>Irvine, CA · NE</span></div>
+ {go}</div>'''
+    n = NAV
+    turn = f'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V11a4 4 0 0 1 4-4h8"/><path d="M15 3l4 4-4 4"/></svg>'
+    return m + f'''<div style="position:absolute;left:12px;right:12px;top:12px;background:{t["glass"]};border-radius:16px;padding:12px;display:flex;gap:12px;align-items:center">
+  <div style="width:48px;height:48px;border-radius:12px;background:{A};display:flex;align-items:center;justify-content:center;flex:none">{turn}</div>
+  <div><div style="font-size:20px;font-weight:700">{n["dist"]}</div><div style="font-size:13px;font-weight:600;color:{t["sub"]};margin-top:2px">{n["turn"]}</div></div></div>
+ <div class="loc"><b>{n["street"]}</b><span>{n["left"]} · Llegada {n["eta"]}</span></div>
+ <div class="go"><div><span class="d" style="background:{n["color"]}"></span>Abrir {n["app"]}</div></div></div>'''
+
 def css(t):
     return f'''html{{zoom:1.8}} *{{margin:0;padding:0;box-sizing:border-box}}
 body{{width:1067px;height:600px;background:{t["bg"]};font-family:Inter,sans-serif;color:{t["tx"]};overflow:hidden;position:relative}}
@@ -220,10 +239,7 @@ def home(t, kind='vel'):
  <div class="ctl">{ICON["prev"]}{ICON["play"]}{ICON["next"]}</div>
  <div class="pr"><b></b></div><div class="tm"><span>1:12</span><span>-1:48</span></div>
  {theme_toggle(t)}<div class="st"><b>10:30</b><small>WI-FI · GPS<i></i></small></div></div>
-<div class="card map"><img src="data:image/svg+xml;base64,{mapsvg(t, 286, 512)}">
- <div class="pill">{ICON["nav"]}Navegación</div>
- <div class="loc"><b>Jamboree Rd</b><span>Irvine, CA · NE</span></div>
- <div class="go"><div><span class="d" style="background:#33CCFF"></span>Waze</div><div><span class="d" style="background:#34A853"></span>Google Maps</div></div></div>
+{map_card(t)}
 <div class="card carp">{SR[0]}<img class="car" style="top:{SR[1]:.1f}px" src="data:image/png;base64,{car}">{lights_img(t, f"left:14px;top:{SR[1]:.1f}px;width:427px")}<div class="nm">{CAR_NAME}</div></div>
 <div class="card wx"><div class="hd"><span>Clima</span></div>{sun(30, 30)}
  <div style="position:absolute;left:18px;top:46px;font-size:12px;color:{t["faint"]};font-weight:500">Irvine</div>
