@@ -49,5 +49,5 @@ jobs:
           arch: x86
           target: default
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.size }}
           script: bash .github/scripts/emu_test.sh ${{ matrix.flavor }} ${{ matrix.size }}

@@ -4,10 +4,7 @@
 # en el log: si el proceso sigue vivo, los errores, una captura y el APK probado (base64) para entregarlo.
 set +e
 f="$1"; size="$2"
-adb shell wm size "$size"
-adb shell wm density 160
-adb shell settings put system user_rotation 1
-adb shell settings put system accelerometer_rotation 0
+adb shell wm density 160   # la resolución la fija el emulador (-skin); ambas pantallas son 160 dpi
 sleep 3
 adb shell wm size
 adb shell getprop ro.build.version.sdk
