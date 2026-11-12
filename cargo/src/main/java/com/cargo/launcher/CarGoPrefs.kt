@@ -34,8 +34,12 @@ object CarGoPrefs {
     private inline fun <reified T : Enum<T>> enumPref(key: String, def: T): T =
         p.getString(key, null)?.let { s -> enumValues<T>().firstOrNull { it.name == s } } ?: def
 
+    /** Carro con el que arranca esta app (sabor prius o jeep del build). */
+    private val DEFAULT_VEHICLE: Vehicle =
+        Vehicle.values().firstOrNull { it.name == BuildConfig.DEFAULT_VEHICLE } ?: Vehicle.PRIUS_2011
+
     var vehicle: Vehicle
-        get() = enumPref("vehicle", Vehicle.PRIUS_2011)
+        get() = enumPref("vehicle", DEFAULT_VEHICLE)
         set(v) = p.edit().putString("vehicle", v.name).apply()
 
     var theme: ThemeMode

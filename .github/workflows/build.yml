@@ -20,7 +20,7 @@ jobs:
       - name: Compilar CarGo (rama cargo-core)
         run: |
           chmod +x gradlew
-          ./gradlew :cargo:assembleDebug :cargo:assembleRelease :cargo:lintDebug --no-daemon || (cat cargo/build/lint.txt; exit 1)
+          ./gradlew :cargo:assembleDebug :cargo:assembleRelease :cargo:lintPriusDebug --no-daemon || (cat cargo/build/lint.txt; exit 1)
 
       - name: Resultado de lint CarGo
         if: always()
@@ -28,5 +28,10 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: CarGo-debug-apk
-          path: cargo/build/outputs/apk/debug/*.apk
+          name: CarGo-Prius-apk
+          path: cargo/build/outputs/apk/prius/debug/*.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CarGo-Jeep-apk
+          path: cargo/build/outputs/apk/jeep/debug/*.apk

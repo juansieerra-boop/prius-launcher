@@ -15,6 +15,22 @@ android {
         versionName = "1.0"
     }
 
+    // Una app por carro: cada una abre directo con su vehículo (se puede cambiar en el menú del instalador).
+    buildFeatures { buildConfig = true }
+    flavorDimensions += "car"
+    productFlavors {
+        create("prius") {
+            dimension = "car"
+            applicationIdSuffix = ".prius"
+            buildConfigField("String", "DEFAULT_VEHICLE", "\"PRIUS_2011\"")
+        }
+        create("jeep") {
+            dimension = "car"
+            applicationIdSuffix = ".jeep"
+            buildConfigField("String", "DEFAULT_VEHICLE", "\"JEEP_SAHARA_2021\"")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
