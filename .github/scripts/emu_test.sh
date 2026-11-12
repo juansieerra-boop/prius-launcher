@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
-# Uso: emu_test.sh <sabor> <ancho>x<alto>
+# Uso: emu_test.sh <módulo> <sabor> <ancho>x<alto> <paquete> <actividad>
 # Instala el APK en el emulador con la resolución real de la pantalla, lo abre como en el carro y deja
 # en el log: si el proceso sigue vivo, los errores, una captura y el APK probado (base64) para entregarlo.
 set +e
-f="$1"; size="$2"
+mod="$1"; flv="$2"; size="$3"; pkg="$4"; act="$5"; f="$mod-$flv"
 adb shell wm density 160   # la resolución la fija el emulador (-skin); ambas pantallas son 160 dpi
 sleep 3
 adb shell wm size
 adb shell getprop ro.build.version.sdk
 
-pkg="com.cargo.launcher.$f"
-apk=$(ls cargo/build/outputs/apk/$f/debug/*.apk | head -1)
+apk=$(ls $mod/build/outputs/apk/$flv/*/*.apk | head -1)
 echo "===== $f: $apk"
 adb install -r -g "$apk"
 adb logcat -c
-adb shell am start -n "$pkg/com.cargo.launcher.MainActivity"
+adb shell am start -n "$pkg/$act"
 sleep 25
 echo "===== $f: proceso"
 adb shell pidof "$pkg" || echo "PROCESO MUERTO"

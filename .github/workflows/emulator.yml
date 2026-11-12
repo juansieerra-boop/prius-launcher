@@ -14,13 +14,12 @@ jobs:
       matrix:
         include:
           # Cada carro con la versión de Android y la resolución REALES de su pantalla
-          - flavor: prius
-            api: 28
-            size: 1024x600
-          - flavor: jeep
-            api: 27
-            size: 1280x720
-    name: ${{ matrix.flavor }} (API ${{ matrix.api }}, ${{ matrix.size }})
+          # app = launcher aprobado (PriusLauncher) · cargo = producto comercial CarGo
+          - { module: app,   flavor: prius, task: PriusRelease, api: 28, size: 1024x600, pkg: com.juandiego.priuslauncher, act: com.juandiego.priuslauncher.MainActivity }
+          - { module: app,   flavor: jeep,  task: JeepRelease, api: 27, size: 1280x720, pkg: com.juandiego.jeeplauncher,  act: com.juandiego.priuslauncher.MainActivity }
+          - { module: cargo, flavor: prius, task: PriusDebug, api: 28, size: 1024x600, pkg: com.cargo.launcher.prius,    act: com.cargo.launcher.MainActivity }
+          - { module: cargo, flavor: jeep,  task: JeepDebug,  api: 27, size: 1280x720, pkg: com.cargo.launcher.jeep,     act: com.cargo.launcher.MainActivity }
+    name: ${{ matrix.module }} ${{ matrix.flavor }} (API ${{ matrix.api }}, ${{ matrix.size }})
     steps:
       - uses: actions/checkout@v5
 
@@ -32,9 +31,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Compilar APK
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}   # igual que la versión aprobada
         run: |
           chmod +x gradlew
-          ./gradlew :cargo:assemble${{ matrix.flavor == 'prius' && 'Prius' || 'Jeep' }}Debug --no-daemon
+          ./gradlew :${{ matrix.module }}:assemble${{ matrix.task }} --no-daemon
 
       - name: Habilitar KVM
         run: |
@@ -50,4 +51,4 @@ jobs:
           target: default
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.size }}
-          script: bash .github/scripts/emu_test.sh ${{ matrix.flavor }} ${{ matrix.size }}
+          script: bash .github/scripts/emu_test.sh ${{ matrix.module }} ${{ matrix.flavor }} ${{ matrix.size }} ${{ matrix.pkg }} ${{ matrix.act }}
