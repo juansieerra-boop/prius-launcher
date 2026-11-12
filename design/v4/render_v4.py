@@ -82,11 +82,17 @@ BG = {k: _b64(os.path.join(ROOT, 'fondos', f'estudio_{k}.jpg')) for k in ('dia',
 BG_W, BG_H = 1933, 1080   # fondos v2 de Juan Diego (1024x572 agrandados a 1080 de alto)
 BG_FLOOR = {'dia': 350 * 1080 / 572, 'noche': 363 * 1080 / 572}   # línea pared/piso medida en cada foto
 
+# Medidas del carro en su dibujo (Prius 909x454). Otro carro (Jeep) cambia este diccionario.
+GEOM = dict(w=909, h=454, fr=(444, 425), rr=(844, 321), lat=(-270 * .85, -40 * .85), rl_k=.72, fr_w=40, rr_w=25, fl_w=0)
+STAGE = None   # colores del fondo del carro: None = gris neutro (Prius); dict(dia=(...), noche=(...)) para otra paleta
+
 BG_STYLE = 'minimal'   # 'minimal' = fondo liso (actual) · 'foto' = fotos de estudio de Juan Diego
 
 def backdrop_min(w, h, floor, night):
     """Fondo minimalista: pared y piso lisos, sin línea dura entre ellos, y una luz suave detrás del carro."""
-    if night:
+    if STAGE:
+        wall0, wall1, fl0, fl1, spot, sop = STAGE['noche' if night else 'dia']
+    elif night:
         wall0, wall1, fl0, fl1, spot, sop = '#121317', '#1A1C21', '#16171B', '#0C0D10', '#3A3F48', .55
     else:
         wall0, wall1, fl0, fl1, spot, sop = '#ECEDEF', '#E2E4E7', '#DCDEE1', '#CFD2D6', '#FFFFFF', .85
@@ -102,10 +108,10 @@ def backdrop_min(w, h, floor, night):
 def shadow_svg(ox, ct, sc, night):
     """Sombra suave bajo el carro: la huella de las 4 llantas en el piso, difuminada, más el contacto de cada llanta visible."""
     P = lambda x, y: (ox + x * sc, ct + y * sc)
-    k = sc / 0.47
-    FR, RR = (444, 425), (844, 321)                 # llantas visibles (medidas en el dibujo 909x454)
-    lat = (-270 * .85, -40 * .85)                    # ancho del carro en pantalla (dirección faro der. → faro izq.)
-    FL = (FR[0] + lat[0], FR[1] + lat[1]); RL = (RR[0] + lat[0] * .72, RR[1] + lat[1] * .72)
+    k = sc * GEOM['w'] / 909 / 0.47   # 1.0 con el carro al ancho del render
+    FR, RR = GEOM['fr'], GEOM['rr']                  # llantas visibles (medidas en el dibujo del carro)
+    lat = GEOM['lat']                                # ancho del carro en pantalla (dirección faro der. → faro izq.)
+    FL = (FR[0] + lat[0], FR[1] + lat[1]); RL = (RR[0] + lat[0] * GEOM['rl_k'], RR[1] + lat[1] * GEOM['rl_k'])
     quad = [P(*FR), P(*RR), P(*RL), P(*FL)]
     cx = sum(p[0] for p in quad) / 4; cy = sum(p[1] for p in quad) / 4
     shrink = lambda f: ' '.join(f'{cx + (x - cx) * f:.1f},{cy + (y - cy) * f:.1f}' for x, y in quad)
@@ -116,21 +122,22 @@ def shadow_svg(ox, ct, sc, night):
     out += f'<polygon points="{shrink(1.15)}" fill="#000" opacity="{o1}" filter="url(#sa)"/>'
     out += f'<polygon points="{shrink(.80)}" fill="#000" opacity="{o2}" filter="url(#sb2)"/>'
     ang = math.degrees(math.atan2(RR[1] - FR[1], RR[0] - FR[0]))
-    for (x, y), w in [(P(*FR), 40), (P(*RR), 25)]:
+    tires = [(P(*FR), GEOM['fr_w']), (P(*RR), GEOM['rr_w'])] + ([(P(*FL), GEOM['fl_w'])] if GEOM['fl_w'] else [])
+    for (x, y), w in tires:
         out += f'<ellipse cx="{x:.1f}" cy="{y:.1f}" rx="{w*sc:.1f}" ry="{4*k:.1f}" transform="rotate({ang:.2f} {x:.1f} {y:.1f})" fill="#000" opacity="{o3}" filter="url(#sc2)"/>'
     return out
 
 def showroom(t, w, h, cw):
     """Fondo de estudio (fotos de Juan Diego) + reflejo del carro. Devuelve (html, top_del_carro)."""
     night = t['night']
-    sc = cw / 909; ch = 454 * sc
+    sc = cw / GEOM['w']; ch = GEOM['h'] * sc
     s = max(w / BG_W, h / BG_H); bw, bh = BG_W * s, BG_H * s
     bx, by = (w - bw) / 2, (h - bh) / 2
     floor = (h * .60) if BG_STYLE == 'minimal' else by + BG_FLOOR['noche' if night else 'dia'] * s
     # el carro va centrado, pero la llanta trasera siempre queda sobre el piso (nunca "parada" en la pared)
-    ct = max((h - ch) / 2 - 10, floor - 321 * sc + 12)
+    ct = max((h - ch) / 2 - 10, floor - GEOM['rr'][1] * sc + 12)
     ox = (w - cw) / 2
-    x0, y0 = ox + 444 * sc, ct + 425 * sc; x1, y1 = ox + 844 * sc, ct + 321 * sc
+    x0, y0 = ox + GEOM['fr'][0] * sc, ct + GEOM['fr'][1] * sc; x1, y1 = ox + GEOM['rr'][0] * sc, ct + GEOM['rr'][1] * sc
     m = (y1 - y0) / (x1 - x0)
     k = 'noche' if night else 'dia'
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{w}" height="{h}" viewBox="0 0 {w} {h}"><defs>'
@@ -142,7 +149,7 @@ def showroom(t, w, h, cw):
            + (backdrop_min(w, h, floor, night) if BG_STYLE == 'minimal' else
               f'<image href="data:image/jpeg;base64,{BG[k]}" x="{bx:.1f}" y="{by:.1f}" width="{bw:.1f}" height="{bh:.1f}" preserveAspectRatio="none"/>'
               f'<rect width="{w}" height="{by+300*s:.1f}" fill="url(#ceil)"/>') +
-           f'<ellipse cx="{w/2}" cy="{ct+170*sc:.1f}" rx="{cw*.58:.1f}" ry="{150*sc:.1f}" fill="url(#gw)"/>'
+           f'<ellipse cx="{w/2}" cy="{ct+0.374*ch:.1f}" rx="{cw*.58:.1f}" ry="{0.33*ch:.1f}" fill="url(#gw)"/>'
            f'<ellipse cx="{w/2}" cy="{y0+6:.1f}" rx="{cw*.5:.1f}" ry="18" fill="{"#3A3E46" if night else "#FFFFFF"}" opacity="{.40 if night else .5}" filter="url(#b14)"/>'
            # sombra suave de contacto: debajo de cada llanta + una sombra difusa del piso del carro entre ellas
            + shadow_svg(ox, ct, sc, night) +
