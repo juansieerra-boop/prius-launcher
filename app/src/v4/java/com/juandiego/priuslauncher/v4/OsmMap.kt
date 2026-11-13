@@ -98,39 +98,52 @@ object OsmTiles {
 }
 
 /**
- * Mapa en vivo de respaldo (cuando la pantalla no tiene Google Play):
- * colores apagados para que combine con el diseño minimalista (claro de día, oscuro de noche).
+ * Mapa en vivo: gira con el carro (el camino siempre hacia adelante), se mueve suave entre cada lectura
+ * del GPS (60 cuadros por segundo) y acerca o aleja según la velocidad. Calles reales de OpenStreetMap,
+ * con colores apagados para que combine con el diseño (claro de día, oscuro de noche).
  */
 class OsmMapView(private val u: U) : View(u.ctx) {
     private companion object {
-        const val ZOOM = 16
+        const val GLIDE_MS = 1100f          // tiempo para ir de una lectura del GPS a la siguiente
     }
 
+    // posición mostrada (se acerca suave a la última del GPS)
     private var lat = Double.NaN
     private var lon = Double.NaN
-    private var bearing = Float.NaN
+    private var rot = 0f                    // rumbo mostrado (grados)
+    private var zoom = 17f
+    // de dónde a dónde va la animación
+    private var fromLat = 0.0; private var fromLon = 0.0; private var toLat = 0.0; private var toLon = 0.0
+    private var fromRot = 0f; private var toRot = 0f
+    private var fromZoom = 17f; private var toZoom = 17f
+    private var animStart = 0L
+    private var hasHeading = false
+
     private val tilePaint = Paint(Paint.FILTER_BITMAP_FLAG).apply { colorFilter = ColorMatrixColorFilter(matrix(u.pal.dark)) }
     private val arrowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val haloPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = alpha(u.pal.accent, 0.16f) }
-    private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
+    private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; color = Color.WHITE; strokeJoin = Paint.Join.ROUND }
+    private val haloPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = alpha(u.pal.accent, 0.13f) }
+    private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x30000000 }
     private val attrib = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = u.pal.faint; typeface = Fonts.w500(u.ctx) }
     private val dst = RectF()
     private val arrow = Path()
     private val redraw: () -> Unit = { invalidate() }
     private val bg = u.pal.card
 
+    /** Avisa el rumbo mostrado en cada cuadro (para la brújula). */
+    var onBearing: ((Float) -> Unit)? = null
+
     /** Día: casi sin color. Noche: invertido y apagado (calles claras sobre fondo oscuro). */
     private fun matrix(dark: Boolean): ColorMatrix {
         val m = ColorMatrix()
         m.setSaturation(if (dark) 0.10f else 0.18f)
         if (dark) {
-            val inv = ColorMatrix(floatArrayOf(
+            m.postConcat(ColorMatrix(floatArrayOf(
                 -0.72f, 0f, 0f, 0f, 196f,
                 0f, -0.72f, 0f, 0f, 198f,
                 0f, 0f, -0.72f, 0f, 202f,
                 0f, 0f, 0f, 1f, 0f
-            ))
-            m.postConcat(inv)
+            )))
         } else {
             m.postConcat(ColorMatrix(floatArrayOf(
                 0.96f, 0f, 0f, 0f, 8f,
@@ -142,55 +155,105 @@ class OsmMapView(private val u: U) : View(u.ctx) {
         return m
     }
 
-    fun setLocation(latitude: Double, longitude: Double, bearingDeg: Float?) {
-        lat = latitude
-        lon = longitude
-        if (bearingDeg != null) bearing = bearingDeg
-        invalidate()
+    /** Nueva lectura del GPS. speed en m/s. */
+    fun setLocation(latitude: Double, longitude: Double, bearingDeg: Float?, speedMps: Float = 0f) {
+        val now = android.os.SystemClock.uptimeMillis()
+        if (lat.isNaN()) {
+            lat = latitude; lon = longitude
+            fromLat = latitude; fromLon = longitude; toLat = latitude; toLon = longitude
+            if (bearingDeg != null) { rot = bearingDeg; fromRot = rot; toRot = rot; hasHeading = true }
+            animStart = now
+            invalidate()
+            return
+        }
+        stepAnimation(now)
+        fromLat = lat; fromLon = lon; toLat = latitude; toLon = longitude
+        fromRot = rot
+        if (bearingDeg != null) {
+            // el giro más corto (de 350° a 10° son 20°, no 340°)
+            var d = (bearingDeg - rot) % 360f
+            if (d > 180f) d -= 360f
+            if (d < -180f) d += 360f
+            toRot = rot + d
+            hasHeading = true
+        } else {
+            toRot = rot
+        }
+        // zoom por velocidad: calle (17) parado o despacio, 16 en avenida, 15 en freeway
+        val mph = speedMps * 2.23694f
+        val z = when { mph < 25f -> 17f; mph < 50f -> 16.2f; else -> 15.4f }
+        fromZoom = zoom; toZoom = z
+        animStart = now
+        postInvalidateOnAnimation()
+    }
+
+    private fun stepAnimation(now: Long): Boolean {
+        val t = ((now - animStart) / GLIDE_MS).coerceIn(0f, 1f)
+        val e = t * t * (3f - 2f * t)           // suave al empezar y al llegar
+        lat = fromLat + (toLat - fromLat) * t   // posición lineal: velocidad constante, sin "tirones"
+        lon = fromLon + (toLon - fromLon) * t
+        rot = fromRot + (toRot - fromRot) * e
+        zoom = fromZoom + (toZoom - fromZoom) * e
+        return t < 1f
     }
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(bg)
         if (lat.isNaN()) return
-        val ts = 256f * u.s * 1.1f
-        val n = 1 shl ZOOM
+        val moving = stepAnimation(android.os.SystemClock.uptimeMillis())
+        val zi = floor(zoom).toInt().coerceIn(3, 18)
+        val scale = Math.pow(2.0, (zoom - zi).toDouble()).toFloat()
+        val ts = 256f * u.s * 1.1f * scale
+        val n = 1 shl zi
         val latR = Math.toRadians(lat.coerceIn(-85.0, 85.0))
         val worldX = (lon + 180.0) / 360.0 * n * ts
         val worldY = (1.0 - ln(tan(latR) + 1.0 / cos(latR)) / PI) / 2.0 * n * ts
-        val cyF = 0.56f
-        val left = worldX - width / 2.0
-        val top = worldY - height * cyF
+        val cx = width / 2f
+        val cy = height * 0.72f
+        // radio que hay que cubrir al girar (la esquina más lejana desde la flecha)
+        val r = Math.hypot(maxOf(cx, width - cx).toDouble(), maxOf(cy, height - cy).toDouble())
+        canvas.save()
+        canvas.rotate(-rot, cx, cy)
+        val left = worldX - r
+        val top = worldY - r
         var shown = 0
-        for (ty in floor(top / ts).toInt()..floor((top + height) / ts).toInt()) {
+        for (ty in floor(top / ts).toInt()..floor((worldY + r) / ts).toInt()) {
             if (ty < 0 || ty >= n) continue
-            for (tx in floor(left / ts).toInt()..floor((left + width) / ts).toInt()) {
+            for (tx in floor(left / ts).toInt()..floor((worldX + r) / ts).toInt()) {
                 val wx = ((tx % n) + n) % n
-                val bmp = OsmTiles.get(context, ZOOM, wx, ty, redraw) ?: continue
-                val x = (tx * ts - left).toFloat()
-                val y = (ty * ts - top).toFloat()
+                val bmp = OsmTiles.get(context, zi, wx, ty, redraw) ?: continue
+                val x = (tx * ts - worldX + cx).toFloat()
+                val y = (ty * ts - worldY + cy).toFloat()
                 dst.set(x, y, x + ts, y + ts)
                 canvas.drawBitmap(bmp, null, dst, tilePaint)
                 shown++
             }
         }
-        // tu posición (como en el render: halo, círculo blanco y flecha azul)
-        val cx = width / 2f
-        val cy = height * cyF
-        canvas.drawCircle(cx, cy, u.px(34f), haloPaint)
-        canvas.drawCircle(cx, cy, u.px(16f), ringPaint)
-        arrowPaint.color = u.pal.accent
-        canvas.drawCircle(cx, cy, u.px(12f), arrowPaint)
-        canvas.save()
-        canvas.translate(cx, cy)
-        if (!bearing.isNaN()) canvas.rotate(bearing)
-        arrow.reset()
-        arrow.moveTo(0f, -u.px(8f)); arrow.lineTo(u.px(6f), u.px(7f)); arrow.lineTo(0f, u.px(4f)); arrow.lineTo(-u.px(6f), u.px(7f)); arrow.close()
-        arrowPaint.color = Color.WHITE
-        canvas.drawPath(arrow, arrowPaint)
         canvas.restore()
+
+        // flecha del carro: siempre hacia arriba (el mapa es el que gira)
+        canvas.drawCircle(cx, cy, u.px(38f), haloPaint)
+        canvas.drawOval(cx - u.px(22f), cy + u.px(-4f), cx + u.px(22f), cy + u.px(12f), shadowPaint)
+        arrow.reset()
+        arrow.moveTo(cx, cy - u.px(19f)); arrow.lineTo(cx + u.px(14f), cy + u.px(14f))
+        arrow.lineTo(cx, cy + u.px(7f)); arrow.lineTo(cx - u.px(14f), cy + u.px(14f)); arrow.close()
+        if (!hasHeading) {
+            // sin rumbo todavía: punto en lugar de flecha
+            arrowPaint.color = Color.WHITE
+            canvas.drawCircle(cx, cy, u.px(15f), arrowPaint)
+            arrowPaint.color = u.pal.accent
+            canvas.drawCircle(cx, cy, u.px(11f), arrowPaint)
+        } else {
+            arrowPaint.color = u.pal.accent
+            canvas.drawPath(arrow, arrowPaint)
+            strokePaint.strokeWidth = u.px(3f)
+            canvas.drawPath(arrow, strokePaint)
+        }
         if (shown > 0) {
             attrib.textSize = u.px(8f)
             canvas.drawText("© OpenStreetMap", u.px(10f), height - u.px(3f), attrib)
         }
+        onBearing?.invoke(rot)
+        if (moving) postInvalidateOnAnimation()
     }
 }

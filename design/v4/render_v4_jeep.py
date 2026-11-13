@@ -4,7 +4,7 @@ import os, sys, base64
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import render_v4 as r
 A = os.path.join(r.ROOT, '..')
-r.car = base64.b64encode(open(os.path.join(A, 'originales', 'jeep_caro_blanco.png'), 'rb').read()).decode()
+r.car = base64.b64encode(open(os.path.join(A, 'assets', 'jeep_caro_limpio.png'), 'rb').read()).decode()
 r.lights = base64.b64encode(open(os.path.join(A, 'assets', 'jeep_caro_luces.png'), 'rb').read()).decode()
 r.CAR_NAME = 'DENALI WRANGLER'
 NAV0 = r.ICON['nav']

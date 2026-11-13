@@ -85,64 +85,100 @@ fun weatherDot(p: Pal, code: Int, day: Boolean): Int = when (code) {
 
 // ---------- Mapa ----------
 
+/** Brújula pequeña: la aguja roja apunta al norte (gira al revés del carro). */
+class MiniCompass(private val u: U) : View(u.ctx) {
+    var bearing = 0f
+        set(v) { if (field != v) { field = v; invalidate() } }
+    private val red = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFF3B30.toInt() }
+    private val gray = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = u.pal.sub }
+    private val path = Path()
+    override fun onDraw(c: Canvas) {
+        val cx = width / 2f
+        val cy = height / 2f
+        val k = width / 36f
+        c.save()
+        c.rotate(-bearing, cx, cy)
+        path.reset(); path.moveTo(cx, cy - 9.5f * k); path.lineTo(cx + 4f * k, cy); path.lineTo(cx - 4f * k, cy); path.close()
+        c.drawPath(path, red)
+        path.reset(); path.moveTo(cx, cy + 9.5f * k); path.lineTo(cx + 4f * k, cy); path.lineTo(cx - 4f * k, cy); path.close()
+        c.drawPath(path, gray)
+        c.restore()
+    }
+}
+
+/**
+ * Mapa en vivo: gira con el carro, sin botones. Arriba la calle y la brújula; tocar el mapa abre la app
+ * elegida en Ajustes (HERE WeGo por defecto). Navegando: arriba la siguiente vuelta, abajo tiempo y llegada.
+ */
 class MapCard(
     u: U, private val act: Activity, state: android.os.Bundle?,
-    onTapMap: () -> Unit, onLong: () -> Unit
+    @Suppress("UNUSED_PARAMETER") onTapMap: () -> Unit, onLong: () -> Unit
 ) : Card(u) {
 
-    /** Google Maps (si la pantalla tiene Google Play y hay clave) o el mapa de respaldo OpenStreetMap. */
+    /** Google Maps (si la pantalla tiene Google Play y hay clave) o el mapa en vivo de OpenStreetMap. */
     val panel: MapPanel?
     private val osm: OsmMapView?
     private val pill = LinearLayout(u.ctx)
-    private val pillText = u.text(13f, 600, u.pal.tx, u.ctx.getString(R.string.v4_nav))
+    private val pillText = u.text(13f, 600, u.pal.tx, u.ctx.getString(R.string.v4_locating))
+    private val pillDir = u.text(13f, 500, u.pal.sub, "")
+    private val compassBox = FrameLayout(u.ctx)
+    private val compass = MiniCompass(u)
     private val loc = LinearLayout(u.ctx)
-    private val street = u.text(16f, 700, u.pal.tx, u.ctx.getString(R.string.v4_locating))
+    private val street = u.text(16f, 700, u.pal.tx, "")
     private val city = u.text(12f, 500, u.pal.sub, "")
-    private var compact = false
     private var streetName: String? = null
-    private var cityLine: String = ""
+    private var cityName = ""
+    private var dirText: String? = null
     var located = false
         set(v) { if (field != v) { field = v; refreshText() } }
 
-    private val go = LinearLayout(u.ctx)
     private val nav = LinearLayout(u.ctx)
     private val navIcon = ImageView(u.ctx)
     private val navTitle = u.text(18f, 700, u.pal.tx, "")
     private val navSub = u.text(13f, 600, u.pal.sub, "")
     private var navLine: String? = null
+    private var navigating = false
 
     init {
         val holder = FrameLayout(u.ctx)
         addView(holder, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         if (MapPanel.googleAvailable(act)) {
-            val mp = MapPanel(act, holder, false, !u.pal.dark, u.pal.accent, onTapMap, onLong)
+            val mp = MapPanel(act, holder, false, !u.pal.dark, u.pal.accent, { openChosen() }, onLong)
             mp.create(state)
             panel = mp
             osm = null
         } else {
             panel = null
-            osm = OsmMapView(u)
+            osm = OsmMapView(u).apply {
+                setOnClickListener { openChosen() }
+                onBearing = { b -> compass.bearing = b }   // la brújula gira junto con el mapa
+            }
             holder.addView(osm, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
 
+        // arriba: calle · dirección
         pill.orientation = LinearLayout.HORIZONTAL
         pill.gravity = Gravity.CENTER_VERTICAL
         pill.background = glassPill(u, 16f)
         pill.setPadding(u.i(12f), u.i(7f), u.i(12f), u.i(7f))
         pill.addView(u.icon(R.drawable.v4_ic_nav, u.pal.accent, 14f, 14f), LinearLayout.LayoutParams(u.i(14f), u.i(14f)))
         pill.addView(pillText, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = u.i(8f) })
-        addView(pill, lpAt(u, 12f, 12f, -1f, -1f))
+        pill.addView(pillDir, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = u.i(5f) })
+        val pillLp = lpAt(u, 12f, 12f, -1f, -1f).apply { rightMargin = u.i(12f + 36f + 8f) }
+        addView(pill, pillLp)
 
+        compassBox.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(u.pal.glass) }
+        compassBox.addView(compass, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        addView(compassBox, lpTopRight(u, 12f, 12f, 36f, 36f))
+
+        // abajo (solo navegando): calle y tiempo de llegada
         loc.orientation = LinearLayout.VERTICAL
         loc.background = glassPill(u, 14f)
         loc.setPadding(u.i(14f), u.i(11f), u.i(14f), u.i(11f))
         loc.addView(street)
         loc.addView(city, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = u.i(3f) })
-        addView(loc, lpBottom(u, 12f, 66f, -1f))
-
-        go.orientation = LinearLayout.HORIZONTAL
-        addView(go, lpBottom(u, 12f, 12f, 44f))
-        buildButtons()
+        loc.visibility = View.GONE
+        addView(loc, lpBottom(u, 12f, 12f, -1f))
 
         // navegando: siguiente vuelta (lo que dice la app de mapas en su notificación)
         nav.orientation = LinearLayout.HORIZONTAL
@@ -160,50 +196,55 @@ class MapCard(
         txt.addView(navSub, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = u.i(2f) })
         nav.addView(txt, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = u.i(12f) })
         nav.visibility = View.GONE
+        nav.setOnClickListener { openChosen() }
         addView(nav, lpTopFull(u, 12f, 12f, -1f))
+        refreshText()
     }
 
-    /** Botones de abajo: la app elegida en Ajustes, o Waze y Google Maps. */
-    fun buildButtons() {
-        go.removeAllViews()
-        val choice = V4Prefs.mapApp(act)
-        if (choice.isEmpty()) {
-            go.addView(goButton(u, act.getString(R.string.v4_waze), 0xFF33CCFF.toInt()) { openNav(V4Prefs.MAP_WAZE, "Waze") },
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
-            go.addView(goButton(u, act.getString(R.string.v4_gmaps), 0xFF34A853.toInt()) { openNav(V4Prefs.MAP_GMAPS, "Google Maps") },
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f).apply { leftMargin = u.i(8f) })
-            return
-        }
-        val name = chosenName(choice)
-        val color = when (choice) { V4Prefs.MAP_WAZE -> 0xFF33CCFF.toInt(); V4Prefs.MAP_GMAPS -> 0xFF34A853.toInt(); else -> u.pal.accent }
-        go.addView(goButton(u, act.getString(R.string.v4_open_app, name), color) { openChosen() },
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f))
-    }
+    /** Ya no hay botones; se deja para que Ajustes pueda pedir refrescar. */
+    fun buildButtons() = refreshText()
 
     private fun chosenName(choice: String): String = when (choice) {
         V4Prefs.MAP_WAZE -> "Waze"
         V4Prefs.MAP_GMAPS -> "Google Maps"
+        V4Prefs.MAP_HERE -> "HERE WeGo"
         else -> DockSlots.labelFor(act, act.getSharedPreferences(DockSlots.PREFS, Context.MODE_PRIVATE), DockSlots.MAPS)
     }
 
-    /** Abre la app de mapas elegida (o la primera que haya instalada). */
+    /** Abre la app de mapas elegida en Ajustes. */
     fun openChosen() {
+        val pm = act.packageManager
         val choice = V4Prefs.mapApp(act)
-        when (choice) {
-            "" -> if (!startSafe(act, act.packageManager.getLaunchIntentForPackage(V4Prefs.MAP_GMAPS)?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))) openNav(V4Prefs.MAP_WAZE, "Waze")
-            V4Prefs.MAP_SLOT -> {
-                val i = DockSlots.resolve(act, act.getSharedPreferences(DockSlots.PREFS, Context.MODE_PRIVATE), DockSlots.MAPS)
-                if (!startSafe(act, i)) android.widget.Toast.makeText(act, R.string.v4_cant_open, android.widget.Toast.LENGTH_SHORT).show()
-            }
-            else -> openNav(choice, chosenName(choice))
-        }
+        val i: Intent? = when (choice) {
+            V4Prefs.MAP_SLOT -> DockSlots.resolve(act, act.getSharedPreferences(DockSlots.PREFS, Context.MODE_PRIVATE), DockSlots.MAPS)
+            V4Prefs.MAP_HERE -> V4Prefs.HERE_PACKAGES.firstNotNullOfOrNull { pm.getLaunchIntentForPackage(it) }
+            else -> pm.getLaunchIntentForPackage(choice)
+        }?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (!startSafe(act, i)) android.widget.Toast.makeText(act, act.getString(R.string.v4_not_installed, chosenName(choice)), android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    /** Navegación activa (o null): se muestra arriba del mapa sin abrir otra pantalla. */
+    fun setLocation(lat: Double, lon: Double, bearing: Float?, speedMps: Float = 0f) {
+        panel?.setLocation(lat, lon, bearing)
+        osm?.setLocation(lat, lon, bearing, speedMps)
+        if (bearing != null && osm == null) compass.bearing = bearing
+    }
+
+
+    @Suppress("UNUSED_PARAMETER")
+    fun setCompact(c: Boolean) = refreshText()
+
+    fun setPlace(streetName: String?, cityName: String, dir: String?) {
+        this.streetName = streetName
+        this.cityName = cityName
+        this.dirText = dir
+        refreshText()
+    }
+
+    /** Navegación activa (o null). */
     fun showNav(info: com.juandiego.priuslauncher.NavState.Info?) {
+        navigating = info != null
         if (info == null) {
             nav.visibility = View.GONE
-            pill.visibility = View.VISIBLE
             navLine = null
             refreshText()
             return
@@ -222,54 +263,25 @@ class MapCard(
         }
         navLine = info.sub.ifBlank { null }
         nav.visibility = View.VISIBLE
-        pill.visibility = View.GONE
-        refreshText()
-    }
-
-    private fun goButton(u: U, label: String, color: Int, click: () -> Unit): View = LinearLayout(u.ctx).apply {
-        orientation = LinearLayout.HORIZONTAL
-        gravity = Gravity.CENTER
-        background = glassPill(u, 13f)
-        addView(View(u.ctx).apply { background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color) } },
-            LinearLayout.LayoutParams(u.i(10f), u.i(10f)))
-        addView(u.text(13f, 600, u.pal.tx, label),
-            LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { leftMargin = u.i(8f) })
-        setOnClickListener { click() }
-    }
-
-    private fun openNav(pkg: String, name: String) {
-        val i = act.packageManager.getLaunchIntentForPackage(pkg)?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (!startSafe(act, i)) android.widget.Toast.makeText(act, act.getString(R.string.v4_not_installed, name), android.widget.Toast.LENGTH_SHORT).show()
-    }
-
-    fun setLocation(lat: Double, lon: Double, bearing: Float?) {
-        panel?.setLocation(lat, lon, bearing)
-        osm?.setLocation(lat, lon, bearing)
-    }
-
-    fun setCompact(c: Boolean) {
-        compact = c
-        loc.visibility = if (c) View.GONE else View.VISIBLE
-        refreshText()
-    }
-
-    fun setPlace(streetName: String?, cityLine: String) {
-        this.streetName = streetName
-        this.cityLine = cityLine
         refreshText()
     }
 
     private fun refreshText() {
         val st = streetName
-        if (compact) {
-            pillText.text = if (st != null) listOf(st, cityLine.substringBefore(" · ").substringBefore(",")).filter { it.isNotBlank() }.joinToString(" · ")
-            else u.ctx.getString(R.string.v4_nav)
-        } else {
-            pillText.text = u.ctx.getString(R.string.v4_nav)
-            street.text = st ?: u.ctx.getString(if (located) R.string.v4_here else R.string.v4_locating)
-            val line = navLine ?: cityLine
+        pillText.text = st ?: u.ctx.getString(if (located) R.string.v4_here else R.string.v4_locating)
+        val d = dirText
+        pillDir.text = if (d != null) "· $d" else ""
+        pillDir.visibility = if (d != null) View.VISIBLE else View.GONE
+        pill.visibility = if (navigating) View.GONE else View.VISIBLE
+        compassBox.visibility = if (navigating) View.GONE else View.VISIBLE
+        if (navigating) {
+            street.text = st ?: cityName
+            val line = navLine ?: cityName
             city.text = line
             city.visibility = if (line.isBlank()) View.GONE else View.VISIBLE
+            loc.visibility = View.VISIBLE
+        } else {
+            loc.visibility = View.GONE
         }
     }
 }

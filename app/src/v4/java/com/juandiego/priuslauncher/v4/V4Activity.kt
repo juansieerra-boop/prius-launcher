@@ -375,6 +375,7 @@ class V4Activity : Activity(), SettingsHost {
     // ---------- Ajustes ----------
 
     private fun openSettings() {
+        closeApps()
         val uu = u ?: return
         if (settings != null) return
         val p = SettingsPanel(uu, this, this)
@@ -506,8 +507,25 @@ class V4Activity : Activity(), SettingsHost {
 
     // ---------- Acciones ----------
 
+    /** Menú de apps estilo CarPlay (el botón de apps lo abre y lo cierra). */
+    private var appsGrid: AppsGrid? = null
+
     private fun openApps() {
-        if (!startSafe(this, Intent(this, AppsActivity::class.java))) Toast.makeText(this, R.string.v4_cant_open, Toast.LENGTH_SHORT).show()
+        if (appsGrid != null) { closeApps(); return }
+        val uu = u ?: return
+        if (editing) return
+        val g = AppsGrid(uu, this) { closeApps() }
+        root.place(uu, g, 10f, 78f, designW - 20f, 512f)
+        g.alpha = 0f
+        g.animate().alpha(1f).setDuration(150).start()
+        appsGrid = g
+        bar?.bringToFront()
+    }
+
+    private fun closeApps() {
+        val g = appsGrid ?: return
+        appsGrid = null
+        root.removeView(g)
     }
 
     private fun setLanguage(lang: String) {
@@ -562,6 +580,7 @@ class V4Activity : Activity(), SettingsHost {
 
     override fun onPause() {
         super.onPause()
+        closeApps()
         if (ready) mapCard?.panel?.onPause()
     }
 
@@ -594,6 +613,13 @@ class V4Activity : Activity(), SettingsHost {
         if (ready) mapCard?.panel?.onSave(outState)
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // botón de inicio: cierra el menú de apps o Ajustes
+        closeApps()
+        closeSettings()
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) hideSystemUi()
@@ -603,6 +629,7 @@ class V4Activity : Activity(), SettingsHost {
     override fun onBackPressed() {
         when {
             settings != null -> closeSettings()
+            appsGrid != null -> closeApps()
             editing -> exitEditMode()
             // es la pantalla de inicio: "atrás" no hace nada
         }
@@ -664,17 +691,40 @@ class V4Activity : Activity(), SettingsHost {
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
     }
 
+    private var headingFrom: Location? = null
+
     private fun onLocation(loc: Location, gps: Boolean) {
+        val prev = lastLoc
         lastLoc = loc
         if (gps) {
             showSpeed(if (loc.hasSpeed()) loc.speed else 0f)
             setGps(pal.green)
             Trip.onLocation(this, loc)
         }
-        val moving = loc.hasSpeed() && loc.speed > 1.5f
-        if (loc.hasBearing() && moving) bearing = loc.bearing
-        if (moving && loc.hasBearing()) movingAt = SystemClock.elapsedRealtime()
-        mapCard?.setLocation(loc.latitude, loc.longitude, if (loc.hasBearing() && moving) loc.bearing else null)
+        // velocidad: la del GPS, o calculada entre dos lecturas si el GPS no la da
+        val speed = when {
+            loc.hasSpeed() -> loc.speed
+            prev != null && loc.time > prev.time -> prev.distanceTo(loc) / ((loc.time - prev.time) / 1000f)
+            else -> 0f
+        }
+        val moving = gps && speed > 1.5f
+        // rumbo: el del GPS, o la dirección del recorrido (si el GPS no lo da), solo en movimiento
+        var heading: Float? = null
+        if (moving) {
+            if (loc.hasBearing()) heading = loc.bearing
+            else {
+                val from = headingFrom
+                if (from != null && from.distanceTo(loc) >= 8f) {
+                    heading = (from.bearingTo(loc) + 360f) % 360f
+                    headingFrom = loc
+                } else if (from == null) headingFrom = loc
+            }
+        } else headingFrom = loc
+        if (heading != null) {
+            bearing = heading
+            movingAt = SystemClock.elapsedRealtime()
+        }
+        mapCard?.setLocation(loc.latitude, loc.longitude, heading, speed)
         mapCard?.located = true
         swap?.setBearing(bearing, movingAt > 0)
         center?.swap?.setBearing(bearing, movingAt > 0)
@@ -728,7 +778,7 @@ class V4Activity : Activity(), SettingsHost {
     private fun updatePlaceDir() {
         // el rumbo solo se muestra si el carro va en movimiento (sin GPS en movimiento no hay rumbo real)
         val dir = if (movingAt > 0 && SystemClock.elapsedRealtime() - movingAt < 15_000) cardinal(this, bearing) else null
-        mapCard?.setPlace(street, listOfNotNull(cityName.ifBlank { null }, dir).joinToString(" · "))
+        mapCard?.setPlace(street, cityName, dir)
     }
 
     private fun hasLocationPermission() = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED

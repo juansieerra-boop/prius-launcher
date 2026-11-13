@@ -2,7 +2,7 @@
 # Uso: python3 design/v4/render_v4.py   (desde la raíz del repo)
 import base64, math, random, os
 ROOT = os.path.dirname(os.path.abspath(__file__))
-car = base64.b64encode(open(os.path.join(ROOT, '..', 'assets', 'carro_plateado_polarizado.png'), 'rb').read()).decode()
+car = base64.b64encode(open(os.path.join(ROOT, '..', 'assets', 'carro_plateado_polarizado_limpio.png'), 'rb').read()).decode()
 lights = base64.b64encode(open(os.path.join(ROOT, '..', 'assets', 'luces_encendidas.png'), 'rb').read()).decode()
 CAR_NAME = 'PRIUS'   # editable en Ajustes (para cada cliente)
 LIGHTS = 'auto'   # 'auto' (5 PM–6 AM = modo noche) · 'siempre' · 'apagadas'
@@ -29,6 +29,44 @@ def mapsvg(t, w, h):
     cx, cy = w*.535, h*.56
     s.append(f'<circle cx="{cx}" cy="{cy}" r="34" fill="{A}" fill-opacity=".14"/><circle cx="{cx}" cy="{cy}" r="16" fill="#fff"/><circle cx="{cx}" cy="{cy}" r="12" fill="{A}"/><path d="M{cx},{cy-8} L{cx+6},{cy+7} L{cx},{cy+4} L{cx-6},{cy+7} Z" fill="#fff"/>')
     s.append('</svg>'); return base64.b64encode(''.join(s).encode()).decode()
+
+LIVE = False   # True = mapa en vivo nuevo: gira con el carro (rumbo arriba), sin botones, flecha abajo al centro
+
+def livesvg(t, w, h, bearing=0):
+    """Mapa en vivo (rumbo arriba): calles en cuadrícula girada según el rumbo del carro, manzanas y avenida principal."""
+    night = t['night']
+    land = t['map'] if not night else t['card']
+    block = ('#E9EBEE' if not night else '#1F2126') if not STAGE else ('#F3E6E3' if not night else '#241C20')
+    road = '#FFFFFF' if not night else '#3A3D45'
+    main = '#FFFFFF' if not night else '#4A4E58'
+    casing = '#D9DCE1' if not night else '#2A2C32'
+    txt = t['mapTx']
+    cx, cy = w / 2, h * .72
+    g = [f'<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg"><rect width="{w}" height="{h}" fill="{land}"/>',
+         f'<g transform="rotate({bearing} {cx} {cy})">']
+    S = 74
+    for i in range(-8, 9):
+        for j in range(-10, 8):
+            x = cx + i * S + 9; y = cy + j * S + 9
+            g.append(f'<rect x="{x}" y="{y}" width="{S-18}" height="{S-18}" rx="4" fill="{block}"/>')
+    for i in range(-8, 10):
+        x = cx + i * S
+        g.append(f'<line x1="{x}" y1="{cy-900}" x2="{x}" y2="{cy+700}" stroke="{road}" stroke-width="7"/>')
+        y = cy + i * S
+        g.append(f'<line x1="{cx-700}" y1="{y}" x2="{cx+700}" y2="{y}" stroke="{road}" stroke-width="7"/>')
+    g.append(f'<line x1="{cx}" y1="{cy-900}" x2="{cx}" y2="{cy+700}" stroke="{casing}" stroke-width="17"/>')
+    g.append(f'<line x1="{cx}" y1="{cy-900}" x2="{cx}" y2="{cy+700}" stroke="{main}" stroke-width="13"/>')
+    g.append('</g>')
+    # nombres de calles horizontales (siempre legibles)
+    g.append(f'<text x="{cx+5}" y="{cy-120}" font-size="11" fill="{txt}" font-family="Inter" font-weight="600" transform="rotate(-90 {cx+5} {cy-120})">Jamboree Rd</text>')
+    g.append(f'<text x="{w*.06}" y="{cy-4*74-12}" font-size="10" fill="{txt}" font-family="Inter" font-weight="500">Main St</text>')
+    g.append(f'<text x="{w*.62}" y="{cy-74-12}" font-size="10" fill="{txt}" font-family="Inter" font-weight="500">Barranca Pkwy</text>')
+    # flecha del carro (siempre apunta arriba porque el mapa gira)
+    g.append(f'<ellipse cx="{cx}" cy="{cy+4}" rx="22" ry="8" fill="#000" opacity="{.18 if not night else .35}"/>')
+    g.append(f'<circle cx="{cx}" cy="{cy}" r="38" fill="{A}" fill-opacity=".12"/>')
+    g.append(f'<path d="M{cx},{cy-19} L{cx+14},{cy+14} L{cx},{cy+7} L{cx-14},{cy+14} Z" fill="{A}" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>')
+    g.append('</svg>')
+    return base64.b64encode(''.join(g).encode()).decode()
 
 ICON = {
  'apps': '<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="2" width="7" height="7" rx="2"/><rect x="11" y="2" width="7" height="7" rx="2"/><rect x="2" y="11" width="7" height="7" rx="2"/><rect x="11" y="11" width="7" height="7" rx="2"/></svg>',
@@ -168,7 +206,15 @@ MAP_APP = None   # None = botones Waze y Google Maps · ('Waze', '#33CCFF') = la
 NAV = None   # None = sin navegación · dict(app, color, turn, dist, street, eta, left) = navegando con la app elegida
 
 def map_card(t):
-    m = f'<div class="card map"><img src="data:image/svg+xml;base64,{mapsvg(t, 286, 512)}">'
+    if LIVE:
+        m = f'<div class="card map"><img src="data:image/svg+xml;base64,{livesvg(t, 286, 512)}">'
+        top = (f'<div class="pill">{ICON["nav"]}Jamboree Rd <span style="color:{t["sub"]};font-weight:500">· NE</span></div>'
+               f'<div style="position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:18px;background:{t["glass"]};display:flex;align-items:center;justify-content:center">'
+               f'<svg width="22" height="22" viewBox="0 0 22 22"><g transform="rotate(-45 11 11)"><path d="M11 1.5 15 11H7z" fill="#FF3B30"/><path d="M11 20.5 15 11H7z" fill="{t["sub"]}"/></g></svg></div>')
+        if not NAV:
+            return m + top + '</div>'
+    else:
+        m = f'<div class="card map"><img src="data:image/svg+xml;base64,{mapsvg(t, 286, 512)}">'
     go = (f'<div class="go"><div><span class="d" style="background:{MAP_APP[1]}"></span>Abrir {MAP_APP[0]}</div></div>' if MAP_APP else
           '<div class="go"><div><span class="d" style="background:#33CCFF"></span>Waze</div><div><span class="d" style="background:#34A853"></span>Google Maps</div></div>')
     if not NAV:
@@ -181,7 +227,7 @@ def map_card(t):
   <div style="width:48px;height:48px;border-radius:12px;background:{A};display:flex;align-items:center;justify-content:center;flex:none">{turn}</div>
   <div><div style="font-size:20px;font-weight:700">{n["dist"]}</div><div style="font-size:13px;font-weight:600;color:{t["sub"]};margin-top:2px">{n["turn"]}</div></div></div>
  <div class="loc"><b>{n["street"]}</b><span>{n["left"]} · Llegada {n["eta"]}</span></div>
- <div class="go"><div><span class="d" style="background:{n["color"]}"></span>Abrir {n["app"]}</div></div></div>'''
+ {'' if LIVE else f'<div class="go"><div><span class="d" style="background:{n["color"]}"></span>Abrir {n["app"]}</div></div>'}</div>'''
 
 def css(t):
     return f'''html{{zoom:1.8}} *{{margin:0;padding:0;box-sizing:border-box}}
@@ -206,7 +252,7 @@ body{{width:1067px;height:600px;background:{t["bg"]};font-family:Inter,sans-seri
 .map{{left:10px;top:78px;width:286px;height:512px}}
 .map img{{position:absolute;inset:0}}
 .pill{{position:absolute;left:12px;top:12px;background:{t["glass"]};border-radius:16px;padding:7px 12px;display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600}}
-.loc{{position:absolute;left:12px;right:12px;bottom:66px;background:{t["glass"]};border-radius:14px;padding:11px 14px}}
+.loc{{position:absolute;left:12px;right:12px;bottom:{12 if LIVE else 66}px;background:{t["glass"]};border-radius:14px;padding:11px 14px}}
 .loc b{{font-size:16px;font-weight:700;display:block}} .loc span{{font-size:12px;color:{t["sub"]};font-weight:500}}
 .go{{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px}}
 .go div{{flex:1;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600;background:{t["glass"]}}}

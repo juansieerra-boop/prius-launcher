@@ -20,8 +20,18 @@ sleep 12
 shot() { adb exec-out screencap -p > "shot_$1.png"; echo "===== $size: SHOT $1 BEGIN"; base64 -w 3000 "shot_$1.png" | sed "s/^/B64:/"; echo "===== $size: SHOT $1 END"; }
 echo "===== $size: proceso"; adb shell pidof "$pkg" || echo "PROCESO MUERTO"
 shot inicio
+# manejando hacia el noreste (~45 mph): el mapa debe girar y moverse
+for i in $(seq 0 9); do
+  lat=$(awk "BEGIN{printf \"%.6f\", 33.6846 + $i*0.00020}"); lon=$(awk "BEGIN{printf \"%.6f\", -117.8265 + $i*0.00020}")
+  adb emu geo fix $lon $lat 20 8 40; sleep 1
+done
+sleep 1; shot manejando
 s=$(awk "BEGIN{print $H/600}"); dw=$(awk "BEGIN{print $W/$s}"); ox=$(awk "BEGIN{print ($dw-820)/2}")
 P() { awk "BEGIN{printf \"%d %d\", ($1)*$s, ($2)*$s}"; }
+# menú de apps (botón de apps de la barra)
+adb shell input tap $(P 38 39); sleep 3; shot menu_apps
+adb shell input swipe $(P 800 330) $(P 200 330) 200; sleep 2; shot menu_apps_2
+adb shell input tap $(P 38 39); sleep 2
 # toque largo sobre el carro: ya NO debe abrir el modo editar
 cx=$(awk "BEGIN{print 306+($dw-612)/2}")
 adb shell input swipe $(P $cx 334) $(P $cx 334) 1200; sleep 2; shot toque_largo

@@ -285,10 +285,10 @@ class SettingsPanel(private val u: U, private val act: Activity, private val hos
 
         // APP DEL MAPA: la que abre el widget del mapa (y la que se ve al navegar)
         label(L, 410f, R.string.v4_map_app)
-        val mapIdx = when (draft.mapApp) { V4Prefs.MAP_GMAPS -> 0; V4Prefs.MAP_WAZE -> 1; V4Prefs.MAP_SLOT -> 2; else -> -1 }
-        seg(L, 430f, CW, listOf("Google Maps" to null, "Waze" to null, act.getString(R.string.v4_other_app) to null), mapIdx) { i ->
+        val mapIdx = when (draft.mapApp) { V4Prefs.MAP_HERE -> 0; V4Prefs.MAP_WAZE -> 1; else -> 2 }
+        seg(L, 430f, CW, listOf("HERE WeGo" to null, "Waze" to null, act.getString(R.string.v4_other_app) to null), mapIdx) { i ->
             when (i) {
-                0 -> draft.mapApp = V4Prefs.MAP_GMAPS
+                0 -> draft.mapApp = V4Prefs.MAP_HERE
                 1 -> draft.mapApp = V4Prefs.MAP_WAZE
                 else -> { draft.mapApp = V4Prefs.MAP_SLOT; host.pickMapApp() }
             }

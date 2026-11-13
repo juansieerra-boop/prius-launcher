@@ -25,6 +25,9 @@ object V4Prefs {
     const val MAP_GMAPS = "com.google.android.apps.maps"
     const val MAP_WAZE = "com.waze"
     const val MAP_SLOT = "slot"
+    const val MAP_HERE = "here"
+    /** HERE WeGo normal y beta. */
+    val HERE_PACKAGES = listOf("com.here.app.maps", "com.here.app.wego")
 
     /** Widgets que se pueden poner en los espacios. */
     const val W_MAP = "map"
@@ -46,7 +49,8 @@ object V4Prefs {
     fun defaultName(c: Context): String = c.getString(R.string.v4_default_name)
     fun carName(c: Context): String = p(c).getString("name", null) ?: defaultName(c)
     fun hasXmas(c: Context): Boolean = c.resources.getBoolean(R.bool.v4_has_xmas)
-    fun mapApp(c: Context): String = p(c).getString("map_app", "") ?: ""
+    /** App que abre el mapa: HERE WeGo por defecto. */
+    fun mapApp(c: Context): String = (p(c).getString("map_app", null) ?: MAP_HERE).ifEmpty { MAP_HERE }
     fun panel(c: Context): String = p(c).getString("panel", PANEL_CAR) ?: PANEL_CAR
     fun panelWidget(c: Context): String = p(c).getString("panel_widget", K_SPEED) ?: K_SPEED
     fun lights(c: Context): String = p(c).getString("lights", AUTO) ?: AUTO
