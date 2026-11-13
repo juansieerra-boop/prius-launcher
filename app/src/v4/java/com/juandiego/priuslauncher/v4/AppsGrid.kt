@@ -23,7 +23,7 @@ import kotlin.math.abs
  * Menú de apps estilo CarPlay: íconos grandes en 5 x 2, por páginas (deslizar para cambiar).
  * Va debajo de la barra de música, que se queda fija arriba.
  */
-class AppsGrid(private val u: U, private val act: Activity, private val onClose: () -> Unit) : Card(u) {
+class AppsGrid(u: U, private val act: Activity, private val onClose: () -> Unit) : Card(u) {
 
     private class App(val label: String, val icon: Drawable?, val intent: Intent)
 
